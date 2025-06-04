@@ -1,0 +1,19 @@
+
+version: '3.8'
+
+services:
+  langflow:
+    image: langflowai/langflow:latest
+    ports:
+      - "7860:7860"
+    environment:
+      - LANGFLOW_DEFAULT_FLOWS_PATH=/app/flows
+    volumes:
+      - ./flows:/app/flows
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
