@@ -45,6 +45,7 @@ flowbit-orchestrator/
 
 - Docker + Docker Compose
 - Node.js + npm (or pnpm)
+![Screenshot 2025-06-04 111454](https://github.com/user-attachments/assets/5e4293df-49de-4f58-85d9-1e4ab2a16cfe)
 
 ### Start LangFlow and Redis
 
@@ -65,10 +66,12 @@ npm run dev
 ```
 
 Frontend is available at: `http://localhost:3000`
+![Screenshot 2025-06-04 111502](https://github.com/user-attachments/assets/c161e2aa-ccff-4444-bc99-e30dd1932830)
 
 ---
 
 ## Creating Workflows in LangFlow
+![Screenshot 2025-06-04 111507](https://github.com/user-attachments/assets/295bc132-34cd-45f6-b72c-42a7c9ee694a)
 
 Create agents in LangFlow using this structure:
 
