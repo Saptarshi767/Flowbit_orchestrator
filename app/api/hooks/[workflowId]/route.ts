@@ -4,7 +4,8 @@ import path from 'path';
 import { promises as fs } from 'fs';
 
 export async function POST(req: NextRequest, context: { params: { workflowId: string } }) {
-  const { workflowId } = context.params;
+  const { params } = context;
+  const workflowId = params.workflowId;
   const body = await req.text();
   const input = body ? JSON.parse(body) : {};
 

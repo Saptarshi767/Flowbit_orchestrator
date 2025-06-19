@@ -1,4 +1,10 @@
-{
-  "PDF Agent": "*/2 * * * *",
-  "Classifier Agent": "0 * * * *"
-}
+[
+  {
+    "id": "Classifier Agent.json-1750338742167",
+    "workflowId": "Classifier Agent.json",
+    "schedule": "* * * * *",
+    "input": {
+      "text": "What is the weather like today?"
+    }
+  }
+]

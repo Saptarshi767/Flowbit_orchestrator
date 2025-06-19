@@ -31,6 +31,34 @@ function runWorkflow(workflowId: string, input: any) {
   });
 }
 
+function migrateCronConfigIfNeeded() {
+  if (!fs.existsSync(JOBS_FILE)) return;
+  const data = fs.readFileSync(JOBS_FILE, 'utf-8');
+  try {
+    const parsed = JSON.parse(data);
+    if (Array.isArray(parsed)) {
+      // Already correct format
+      return;
+    }
+    // If it's an object, convert to array
+    if (typeof parsed === 'object' && parsed !== null) {
+      const arr = Object.entries(parsed).map(([workflowId, schedule]) => ({
+        workflowId,
+        schedule,
+        input: {},
+        id: `${workflowId}-${Date.now()}`
+      }));
+      fs.writeFileSync(JOBS_FILE, JSON.stringify(arr, null, 2));
+    }
+  } catch (e) {
+    // If parsing fails, reset to empty array
+    fs.writeFileSync(JOBS_FILE, JSON.stringify([], null, 2));
+  }
+}
+
+// Call migration at the top of the file
+migrateCronConfigIfNeeded();
+
 export function setupCronJobs() {
   if (!fs.existsSync(JOBS_FILE)) {
     fs.writeFileSync(JOBS_FILE, JSON.stringify([]));
