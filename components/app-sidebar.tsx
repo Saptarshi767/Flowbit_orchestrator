@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown, ChevronRight, Folder, FolderOpen, Settings, Workflow } from "lucide-react"
+import { useEffect, useState } from "react"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Settings, Workflow, Loader2 } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -20,59 +21,84 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { cn } from "@/lib/utils"
+import { TriggerWorkflowModal } from "./trigger-workflow-modal"
 
-// Update the props interface to accept folders
-interface AppSidebarProps {
-  selectedFolder: string | null
-  onFolderSelect: (folderId: string | null) => void
-  onManageFolders: () => void
-  folders: { id: string; name: string; workflowCount: number; isDefault: boolean }[]
+interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  engine: "langflow" | "flowbit";
+  folder?: string;
 }
 
-// Remove the mockFolders constant since we'll use the folders prop
+interface Folder {
+  name: string;
+  workflows: Workflow[];
+}
 
-// Update the component to use the folders prop
-export function AppSidebar({ selectedFolder, onFolderSelect, onManageFolders, folders }: AppSidebarProps) {
-  const [expandedFolders, setExpandedFolders] = useState<string[]>(["unassigned"])
+export function AppSidebar() {
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
+  const [triggerModalOpen, setTriggerModalOpen] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
 
-  // Rest of the component remains the same, but use folders prop instead of mockFolders
-
-  // Mock data for workflows in each folder
-  const mockWorkflows = {
-    unassigned: [
-      { id: "wf-1", name: "Email Processor", engine: "n8n" },
-      { id: "wf-2", name: "Data Sync", engine: "langflow" },
-    ],
-    marketing: [
-      { id: "wf-3", name: "Lead Scoring", engine: "n8n" },
-      { id: "wf-4", name: "Campaign Tracker", engine: "langsmith" },
-    ],
-    "data-processing": [
-      { id: "wf-5", name: "ETL Pipeline", engine: "langflow" },
-      { id: "wf-6", name: "Report Generator", engine: "n8n" },
-    ],
-  }
-
-  // Function to get workflows for a folder
-  const getWorkflowsForFolder = (folderId: string) => {
-    return mockWorkflows[folderId as keyof typeof mockWorkflows] || []
-  }
-
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders((prev) => (prev.includes(folderId) ? prev.filter((id) => id !== folderId) : [...prev, folderId]))
-  }
-
-  const getEngineColor = (engine: string) => {
-    switch (engine) {
-      case "n8n":
-        return "bg-blue-100 text-blue-800"
-      case "langflow":
-        return "bg-green-100 text-green-800"
-      case "langsmith":
-        return "bg-purple-100 text-purple-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  useEffect(() => {
+  const fetchWorkflows = async () => {
+    try {
+        const response = await fetch("/api/langflow/workflows");
+        if (!response.ok) throw new Error("Failed to fetch workflows");
+        const data = await response.json();
+        setWorkflows(data);
+        // Group workflows by folder (if you want to support folders in the future)
+        // For now, just put all in one group
+        setFolders([{ name: "All", workflows: data }]);
+    } catch (err) {
+        console.error("Error fetching workflows:", err);
+        setError("Failed to load workflows");
+      } finally {
+        setLoading(false);
     }
+  };
+
+    fetchWorkflows();
+    const interval = setInterval(fetchWorkflows, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleFolder = (folderName: string) => {
+    setExpandedFolders((prev) =>
+      prev.includes(folderName)
+        ? prev.filter((name) => name !== folderName)
+        : [...prev, folderName]
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        <p>{error}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -93,7 +119,7 @@ export function AppSidebar({ selectedFolder, onFolderSelect, onManageFolders, fo
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center justify-between">
             <span>Workflows</span>
-            <Button variant="ghost" size="sm" onClick={onManageFolders} className="h-6 w-6 p-0">
+            <Button variant="ghost" size="sm" onClick={() => {}} className="h-6 w-6 p-0">
               <Settings className="w-3 h-3" />
             </Button>
           </SidebarGroupLabel>
@@ -101,55 +127,51 @@ export function AppSidebar({ selectedFolder, onFolderSelect, onManageFolders, fo
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => onFolderSelect(null)}
-                  isActive={selectedFolder === null}
+                  onClick={() => {}}
+                  isActive={false}
                   className="w-full justify-start"
                 >
                   <Workflow className="w-4 h-4" />
                   <span>All Workflows</span>
                   <Badge variant="secondary" className="ml-auto">
-                    {folders.reduce((acc, folder) => acc + folder.workflowCount, 0)}
+                    {workflows.length}
                   </Badge>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
               {folders.map((folder) => (
-                <Collapsible
-                  key={folder.id}
-                  open={expandedFolders.includes(folder.id)}
-                  onOpenChange={() => toggleFolder(folder.id)}
-                >
+                <Collapsible key={folder.name} open={expandedFolders.includes(folder.name)} onOpenChange={() => toggleFolder(folder.name)}>
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton className="w-full justify-start">
-                        {expandedFolders.includes(folder.id) ? (
+                        {expandedFolders.includes(folder.name) ? (
                           <ChevronDown className="w-4 h-4" />
                         ) : (
                           <ChevronRight className="w-4 h-4" />
                         )}
-                        {expandedFolders.includes(folder.id) ? (
+                        {expandedFolders.includes(folder.name) ? (
                           <FolderOpen className="w-4 h-4" />
                         ) : (
                           <Folder className="w-4 h-4" />
                         )}
                         <span>{folder.name}</span>
-                        <Badge variant="secondary" className="ml-auto">
-                          {folder.workflowCount}
-                        </Badge>
+                        <Badge variant="secondary" className="ml-auto">{folder.workflows.length}</Badge>
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {getWorkflowsForFolder(folder.id).map((workflow) => (
-                          <SidebarMenuSubItem key={workflow.id}>
+                        {folder.workflows.map((wf) => (
+                          <SidebarMenuSubItem key={wf.name}>
                             <SidebarMenuSubButton
-                              onClick={() => onFolderSelect(folder.id)}
-                              isActive={selectedFolder === folder.id}
+                              onClick={() => {
+                                setSelectedWorkflow(wf);
+                                setTriggerModalOpen(true);
+                              }}
+                              isActive={false}
                               className="flex items-center justify-between"
                             >
-                              <span className="truncate">{workflow.name}</span>
-                              <Badge variant="outline" className={`text-xs ${getEngineColor(workflow.engine)}`}>
-                                {workflow.engine}
+                              <span className="truncate">{wf.name}</span>
+                              <Badge variant="outline" className={`text-xs ${wf.engine === 'langflow' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                                {wf.engine === 'langflow' ? 'LangFlow' : 'Flowbit'}
                               </Badge>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -164,9 +186,17 @@ export function AppSidebar({ selectedFolder, onFolderSelect, onManageFolders, fo
         </SidebarGroup>
       </SidebarContent>
 
+      {selectedWorkflow && (
+        <TriggerWorkflowModal
+          open={triggerModalOpen}
+          onOpenChange={setTriggerModalOpen}
+          workflowId={selectedWorkflow.filename}
+        />
+      )}
+
       <SidebarFooter className="border-t border-gray-200 p-4">
         <div className="text-xs text-gray-500">FlowBit Orchestration v1.1</div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

@@ -1,0 +1,3 @@
+Sending request to Ollama: Classify the intent of this email: Please review the attached quarterly report and provide feedback by Friday.
+Error: Ollama request failed: 404 - {"error":"model 'tinyllama' not found"}
+Error: Ollama request failed: 404 - {"error":"model 'tinyllama' not found"}

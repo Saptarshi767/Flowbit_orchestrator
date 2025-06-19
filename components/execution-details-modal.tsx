@@ -1,487 +1,331 @@
 "use client"
+import { useEffect, useState, useRef } from "react";
 
-import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { CheckCircle, XCircle, Clock, AlertTriangle, Info, ChevronDown, ChevronRight, Copy } from "lucide-react"
+import { CheckCircle, XCircle, Clock, AlertTriangle, Info, ChevronDown, ChevronRight, Copy, Loader2, AlertCircle, Download } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface ExecutionDetailsModalProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
-  executionId: string | null
-  engine: string | null
+  onOpenChange: (val: boolean) => void
+  executionId: string
+  engine: "langflow" | "flowbit"
+}
+
+interface ExecutionLog {
+  timestamp: string
+  level: "info" | "error" | "warning"
+  message: string
 }
 
 interface ExecutionDetails {
   id: string
-  workflowName: string
-  status: string
+  status: "running" | "completed" | "failed"
   startTime: string
   endTime?: string
-  duration: string
-  triggerType: string
-  nodes?: any[]
-  logs?: any[]
+  input: any
+  output?: any
   error?: string
-  data?: any
+  logs?: string
 }
 
 export function ExecutionDetailsModal({ open, onOpenChange, executionId, engine }: ExecutionDetailsModalProps) {
-  const [executionDetails, setExecutionDetails] = useState<ExecutionDetails | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [expandedNodes, setExpandedNodes] = useState<string[]>([])
-  const [isUsingMockData, setIsUsingMockData] = useState(false)
+  const [activeTab, setActiveTab] = useState("logs");
+  const [logs, setLogs] = useState<string[]>([]);
+  const [messageLogs, setMessageLogs] = useState<string[]>([]);
+  const [details, setDetails] = useState<ExecutionDetails | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const messageLogsEndRef = useRef<HTMLDivElement | null>(null);
+  const logsEndRef = useRef<HTMLDivElement | null>(null);
+  const [logSearch, setLogSearch] = useState("");
+  const [messageLogSearch, setMessageLogSearch] = useState("");
 
   useEffect(() => {
-    if (open && executionId && engine) {
-      fetchExecutionDetails()
+    if (!open || !executionId) return;
+    
+    setLoading(true);
+    setError(null);
+    setLogs([]);
+    setMessageLogs([]);
+    setDetails(null);
+
+    // Fetch initial execution details
+    fetch(`/api/${engine}/runs/${executionId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch execution details");
+        return res.json();
+      })
+      .then((data) => {
+        setDetails(data);
+        if (data.status === "running") {
+          startLogStream();
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch execution details:", err);
+        setError("Failed to fetch execution details");
+      })
+      .finally(() => {
+      setLoading(false);
+      });
+    
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
+  }, [open, executionId, engine]);
+
+  useEffect(() => {
+    if (messageLogsEndRef.current) {
+      messageLogsEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [open, executionId, engine])
+  }, [messageLogs]);
 
-  const fetchExecutionDetails = async () => {
-    if (!executionId || !engine) return
-
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch(`/api/executions/${executionId}?engine=${engine}`)
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`)
-      }
-
-      const data = await response.json()
-
-      // Check if we're using mock data (based on ID pattern or response structure)
-      if (
-        executionId.startsWith("mock-") ||
-        (data.execution &&
-          (data.execution.id.startsWith("n8n-exec-") || data.execution.id.startsWith("langflow-exec-")))
-      ) {
-        setIsUsingMockData(true)
-      } else {
-        setIsUsingMockData(false)
-      }
-
-      setExecutionDetails(transformExecutionData(data.execution, engine))
-    } catch (error) {
-      console.error("Error fetching execution details:", error)
-      setError("Failed to fetch execution details. Please check your API configuration.")
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    if (logsEndRef.current) {
+      logsEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }
+  }, [logs]);
 
-  const transformExecutionData = (data: any, engine: string): ExecutionDetails => {
-    if (engine === "n8n") {
-      return {
-        id: data.id,
-        workflowName: data.workflowData?.name || "Unknown Workflow",
-        status: data.finished ? (data.stoppedAt ? "success" : "error") : "running",
-        startTime: new Date(data.startedAt)
-          .toLocaleDateString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })
-          .replace(",", ""),
-        endTime: data.stoppedAt
-          ? new Date(data.stoppedAt)
-              .toLocaleDateString("de-DE", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })
-              .replace(",", "")
-          : undefined,
-        duration: data.finished
-          ? `${((new Date(data.stoppedAt).getTime() - new Date(data.startedAt).getTime()) / 1000).toFixed(1)}s`
-          : "Running...",
-        triggerType: data.mode || "manual",
-        nodes: data.data?.resultData?.runData
-          ? Object.entries(data.data.resultData.runData).map(([nodeName, nodeData]: [string, any]) => ({
-              name: nodeName,
-              status: nodeData[0]?.error ? "error" : "success",
-              executionTime: nodeData[0]?.executionTime || 0,
-              data: nodeData[0]?.data,
-              error: nodeData[0]?.error,
-            }))
-          : [],
-        error: data.data?.resultData?.error?.message,
-        data: data.data,
-      }
-    } else if (engine === "langflow") {
-      return {
-        id: data.id,
-        workflowName: data.flow_name || "Unknown Flow",
-        status: data.status === "SUCCESS" ? "success" : data.status === "ERROR" ? "error" : "running",
-        startTime: new Date(data.timestamp)
-          .toLocaleDateString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })
-          .replace(",", ""),
-        duration: data.duration ? `${data.duration.toFixed(1)}s` : "N/A",
-        triggerType: data.trigger_type || "manual",
-        logs: data.logs || [],
-        nodes: data.outputs
-          ? Object.entries(data.outputs).map(([nodeName, nodeData]: [string, any]) => ({
-              name: nodeName,
-              status: nodeData.error ? "error" : "success",
-              data: nodeData.data,
-              error: nodeData.error,
-            }))
-          : [],
-        error: data.error,
-        data: data,
-      }
+  const startLogStream = () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
     }
 
-    return {
-      id: executionId || "",
-      workflowName: "Unknown",
-      status: "unknown",
-      startTime: "",
-      duration: "",
-      triggerType: "unknown",
-    }
-  }
+    const eventSource = new EventSource(`/api/${engine}/runs/${executionId}/stream`);
+    eventSourceRef.current = eventSource;
 
-  const getStatusIcon = (status: string) => {
+    eventSource.onmessage = (event) => {
+      // Each event.data is a plain log line
+      const line = event.data;
+      setLogs((prev) => [...prev, line]);
+      if (line.startsWith("Prompt:")) {
+        setMessageLogs((prev) => [...prev, line]);
+      }
+    };
+
+    eventSource.onerror = () => {
+      console.error("SSE connection failed");
+      eventSource.close();
+      eventSourceRef.current = null;
+      setError("Lost connection to log stream");
+    };
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case "success":
-        return <CheckCircle className="w-5 h-5 text-green-600" />
-      case "error":
-        return <XCircle className="w-5 h-5 text-red-600" />
       case "running":
-        return <Clock className="w-5 h-5 text-blue-600" />
+        return "text-blue-500";
+      case "completed":
+        return "text-green-500";
+      case "failed":
+        return "text-red-500";
       default:
-        return <Clock className="w-5 h-5 text-gray-600" />
+        return "text-gray-500";
     }
-  }
+  };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "success":
-        return <Badge className="bg-green-100 text-green-800">Success</Badge>
-      case "error":
-        return <Badge className="bg-red-100 text-red-800">Error</Badge>
-      case "running":
-        return <Badge className="bg-blue-100 text-blue-800">Running</Badge>
-      default:
-        return <Badge variant="secondary">{status}</Badge>
-    }
-  }
+  const filteredLogs = logs.filter((line) =>
+    logSearch.trim() === "" ? true : line.toLowerCase().includes(logSearch.toLowerCase())
+  );
 
-  const toggleNodeExpansion = (nodeName: string) => {
-    setExpandedNodes((prev) =>
-      prev.includes(nodeName) ? prev.filter((name) => name !== nodeName) : [...prev, nodeName],
-    )
-  }
+  const handleExportLogs = () => {
+    const blob = new Blob([logs.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `logs-${executionId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
+  const filteredMessageLogs = messageLogs.filter((line) =>
+    messageLogSearch.trim() === "" ? true : line.toLowerCase().includes(messageLogSearch.toLowerCase())
+  );
 
-  if (loading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7575e4]"></div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+  const handleExportMessageLogs = () => {
+    const blob = new Blob([messageLogs.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `message-logs-${executionId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  if (error) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-              <p className="text-gray-600">{error}</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  if (!executionDetails) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-              <p className="text-gray-600">Failed to load execution details</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+  if (!open) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh]">
-        {isUsingMockData && (
-          <Alert className="bg-amber-50 border-amber-200 mb-4">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">Using Mock Data</AlertTitle>
-            <AlertDescription className="text-amber-700">
-              Displaying mock execution details because the API connection is not available.
-            </AlertDescription>
-          </Alert>
-        )}
-
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            {getStatusIcon(executionDetails.status)}
-            <span>{executionDetails.workflowName}</span>
-            {getStatusBadge(executionDetails.status)}
-            <Badge variant="outline" className="ml-auto">
-              {engine}
-            </Badge>
-          </DialogTitle>
-          <DialogDescription>
-            Execution ID: {executionDetails.id} • Started: {executionDetails.startTime}
-          </DialogDescription>
+          <DialogTitle>Execution Details</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="nodes">Nodes</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
-            <TabsTrigger value="data">Raw Data</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(executionDetails.status)}
-                    <span className="capitalize">{executionDetails.status}</span>
+        {loading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Duration</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-lg font-semibold">{executionDetails.duration}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Trigger</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="capitalize">{executionDetails.triggerType}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Engine</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge variant="outline">{engine}</Badge>
-                </CardContent>
-              </Card>
-            </div>
-
-            {executionDetails.error && (
-              <Card className="border-red-200">
-                <CardHeader>
-                  <CardTitle className="text-red-600 flex items-center gap-2">
-                    <XCircle className="w-4 h-4" />
-                    Error Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="text-sm text-red-600 whitespace-pre-wrap bg-red-50 p-3 rounded">
-                    {executionDetails.error}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="nodes" className="space-y-4">
-            <ScrollArea className="h-96">
-              {executionDetails.nodes && executionDetails.nodes.length > 0 ? (
-                <div className="space-y-2">
-                  {executionDetails.nodes.map((node, index) => (
-                    <Collapsible
-                      key={index}
-                      open={expandedNodes.includes(node.name)}
-                      onOpenChange={() => toggleNodeExpansion(node.name)}
-                    >
-                      <Card>
-                        <CollapsibleTrigger asChild>
-                          <CardHeader className="cursor-pointer hover:bg-gray-50">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                {expandedNodes.includes(node.name) ? (
-                                  <ChevronDown className="w-4 h-4" />
-                                ) : (
-                                  <ChevronRight className="w-4 h-4" />
-                                )}
-                                {node.status === "error" ? (
-                                  <XCircle className="w-4 h-4 text-red-600" />
-                                ) : (
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
-                                )}
-                                <CardTitle className="text-sm">{node.name}</CardTitle>
+        ) : error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="w-4 h-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : (
+          <>
+            {details && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Status:</span>
+                  <span className={getStatusColor(details.status)}>
+                    {details.status.charAt(0).toUpperCase() + details.status.slice(1)}
+                  </span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                {node.executionTime && <Badge variant="outline">{node.executionTime}ms</Badge>}
-                                <Badge variant={node.status === "error" ? "destructive" : "default"}>
-                                  {node.status}
-                                </Badge>
+                <div className="text-sm text-gray-500">
+                  Started: {new Date(details.startTime).toLocaleString()}
+                  {details.endTime && ` • Ended: ${new Date(details.endTime).toLocaleString()}`}
                               </div>
-                            </div>
-                          </CardHeader>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <CardContent>
-                            {node.error && (
-                              <div className="mb-4">
-                                <h4 className="text-sm font-medium text-red-600 mb-2">Error:</h4>
-                                <pre className="text-xs text-red-600 bg-red-50 p-2 rounded whitespace-pre-wrap">
-                                  {JSON.stringify(node.error, null, 2)}
-                                </pre>
                               </div>
                             )}
-                            {node.data && (
-                              <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="text-sm font-medium">Output Data:</h4>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => copyToClipboard(JSON.stringify(node.data, null, 2))}
-                                  >
-                                    <Copy className="w-3 h-3 mr-1" />
-                                    Copy
-                                  </Button>
-                                </div>
-                                <pre className="text-xs bg-gray-50 p-2 rounded whitespace-pre-wrap max-h-40 overflow-auto">
-                                  {JSON.stringify(node.data, null, 2)}
-                                </pre>
-                              </div>
-                            )}
-                          </CardContent>
-                        </CollapsibleContent>
-                      </Card>
-                    </Collapsible>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Info className="w-8 h-8 mx-auto mb-2" />
-                  <p>No node execution data available</p>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
 
-          <TabsContent value="logs" className="space-y-4">
-            <ScrollArea className="h-96">
-              {executionDetails.logs && executionDetails.logs.length > 0 ? (
-                <div className="space-y-2">
-                  {executionDetails.logs.map((log, index) => (
-                    <Card key={index}>
-                      <CardContent className="p-3">
-                        <div className="flex items-start gap-2">
-                          <Badge
-                            variant="outline"
-                            className={`text-xs ${
-                              log.level === "ERROR" || log.level === "error"
-                                ? "bg-red-50 text-red-700 border-red-200"
-                                : ""
-                            }`}
-                          >
-                            {log.level || "INFO"}
-                          </Badge>
-                          <div className="flex-1">
-                            <div className="text-xs text-gray-500 mb-1">
-                              {log.timestamp || executionDetails.startTime}
-                            </div>
-                            <pre
-                              className={`text-sm whitespace-pre-wrap ${
-                                log.level === "ERROR" || log.level === "error" ? "text-red-600" : ""
-                              }`}
-                            >
-                              {log.message || JSON.stringify(log, null, 2)}
-                            </pre>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Info className="w-8 h-8 mx-auto mb-2" />
-                  <p>No logs available for this execution</p>
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="logs">Logs</TabsTrigger>
+                <TabsTrigger value="message-logs">Message Logs</TabsTrigger>
+                <TabsTrigger value="input">Input</TabsTrigger>
+                <TabsTrigger value="output">Output</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="data" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Raw Execution Data</CardTitle>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(JSON.stringify(executionDetails.data, null, 2))}
+              <TabsContent value="logs">
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Search logs..."
+                    value={logSearch}
+                    onChange={e => setLogSearch(e.target.value)}
+                    className="border rounded px-2 py-1 text-sm flex-1"
+                  />
+                  <button
+                    className="ml-2 p-1 rounded hover:bg-blue-100"
+                    title="Export logs"
+                    onClick={handleExportLogs}
                   >
-                    <Copy className="w-3 h-3 mr-1" />
-                    Copy All
-                  </Button>
+                    <Download className="w-4 h-4 text-blue-500" />
+                  </button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-96">
-                  <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(executionDetails.data, null, 2)}</pre>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                <ScrollArea className="h-[400px] rounded-md border p-4">
+                  {filteredLogs.length === 0 && details?.logs ? (
+                    <pre className="text-xs text-gray-700 whitespace-pre-wrap">{details.logs}</pre>
+                  ) : filteredLogs.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">No logs available</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredLogs.map((line, i) => {
+                        let color = "text-gray-700";
+                        if (/error/i.test(line)) color = "text-red-500";
+                        else if (/warn/i.test(line)) color = "text-yellow-600";
+                        else if (/info/i.test(line)) color = "text-blue-600";
+                        return (
+                          <div key={i} className={`flex items-center gap-2`}>
+                            <span className="text-xs text-gray-400 w-8">#{i + 1}</span>
+                            <span className={`text-sm whitespace-pre-line flex-1 ${color}`}>{line}</span>
+                            <button
+                              className="ml-2 p-1 rounded hover:bg-blue-100"
+                              title="Copy log"
+                              onClick={() => navigator.clipboard.writeText(line)}
+                            >
+                              <Copy className="w-4 h-4 text-blue-500" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      <div ref={logsEndRef} />
+                </div>
+              )}
+            </ScrollArea>
           </TabsContent>
-        </Tabs>
+
+              <TabsContent value="message-logs">
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Search message logs..."
+                    value={messageLogSearch}
+                    onChange={e => setMessageLogSearch(e.target.value)}
+                    className="border rounded px-2 py-1 text-sm flex-1"
+                  />
+                  <button
+                    className="ml-2 p-1 rounded hover:bg-blue-100"
+                    title="Export message logs"
+                    onClick={handleExportMessageLogs}
+                  >
+                    <Download className="w-4 h-4 text-blue-500" />
+                  </button>
+                            </div>
+                <ScrollArea className="h-[400px] rounded-md border p-4">
+                  {filteredMessageLogs.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">No message logs available</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredMessageLogs.map((line, i) => {
+                        const message = line.replace(/^Prompt:\s*/, "");
+                        return (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400 w-8">#{i + 1}</span>
+                            <span className="text-sm text-blue-700 whitespace-pre-line flex-1">{message}</span>
+                            <button
+                              className="ml-2 p-1 rounded hover:bg-blue-100"
+                              title="Copy message"
+                              onClick={() => navigator.clipboard.writeText(message)}
+                            >
+                              <Copy className="w-4 h-4 text-blue-500" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      <div ref={messageLogsEndRef} />
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+              <TabsContent value="input">
+                <ScrollArea className="h-[400px] rounded-md border p-4">
+                  <pre className="text-sm">
+                    {details?.input
+                      ? JSON.stringify(details.input, null, 2)
+                      : "No input data available"}
+                  </pre>
+                </ScrollArea>
+              </TabsContent>
+
+              <TabsContent value="output">
+                <ScrollArea className="h-[400px] rounded-md border p-4">
+                  {typeof details?.output === 'string' ? (
+                    <pre className="text-sm whitespace-pre-wrap">{details.output}</pre>
+                  ) : details?.output ? (
+                    <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(details.output, null, 2)}</pre>
+                  ) : details?.error ? (
+                    <pre className="text-sm whitespace-pre-wrap">{details.error}</pre>
+                  ) : (
+                    <div className="text-center text-gray-500 py-8">No output data available</div>
+                  )}
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   )

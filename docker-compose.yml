@@ -1,4 +1,3 @@
-
 version: '3.8'
 
 services:
@@ -7,13 +6,46 @@ services:
     ports:
       - "7860:7860"
     environment:
-      - LANGFLOW_DEFAULT_FLOWS_PATH=/app/flows
+      - LANGFLOW_SUPERUSER=admin
+      - LANGFLOW_SUPERUSER_PASSWORD=admin
     volumes:
       - ./flows:/app/flows
-    depends_on:
-      - redis
+    networks:
+      - flowbit-network
 
   redis:
-    image: redis:7
+    image: redis:latest
     ports:
       - "6379:6379"
+    networks:
+      - flowbit-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    command: serve
+    networks:
+      - flowbit-network
+
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    volumes:
+      - ./flows:/app/flows
+      - ./logs:/app/logs
+      - ./executions.json:/app/executions.json
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    networks:
+      - flowbit-network
+
+volumes:
+  ollama_data:
+
+networks:
+  flowbit-network:
+    driver: bridge

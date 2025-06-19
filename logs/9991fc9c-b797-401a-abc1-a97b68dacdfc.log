@@ -1,0 +1,2 @@
+Sending request to Ollama: What is the intent of this message: What is the weather like today?
+Error: Ollama request failed: 404 - {"error":"model 'tinyllama' not found"}

@@ -1,0 +1,39 @@
+{
+  "name": "Message Classifier",
+  "description": "Classifies the intent of a message",
+  "nodes": [
+    {
+      "id": "input",
+      "type": "InputNode",
+      "data": {
+        "input": "What is the intent of this message: {text}"
+      }
+    },
+    {
+      "id": "llm",
+      "type": "LLMNode",
+      "data": {
+        "model": "tinyllama",
+        "temperature": 0.4,
+        "max_tokens": 150
+      }
+    },
+    {
+      "id": "output",
+      "type": "OutputNode",
+      "data": {
+        "output": "Message intent classification"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "input",
+      "target": "llm"
+    },
+    {
+      "source": "llm",
+      "target": "output"
+    }
+  ]
+}

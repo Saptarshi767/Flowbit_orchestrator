@@ -32,6 +32,8 @@ interface Execution {
   startTime: string
   triggerType: string
   folderId: string
+  output?: string
+  error?: string
 }
 
 interface ExecutionsDashboardProps {
@@ -113,12 +115,20 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
         },
       ])
     } finally {
-      setLoading(false)
+      setLoading(false);
       setRefreshing(false)
     }
   }
 
-  const filteredExecutions = executions.filter((execution) => {
+  // Sort executions by startTime descending (most recent first)
+  const sortedExecutions = [...executions].sort((a, b) => {
+    // Use Date.parse for ISO strings, fallback to 0 if missing
+    const aTime = Date.parse(a.startTime || '') || 0;
+    const bTime = Date.parse(b.startTime || '') || 0;
+    return bTime - aTime;
+  });
+
+  const filteredExecutions = sortedExecutions.filter((execution) => {
     if (selectedFolder && execution.folderId !== selectedFolder) return false
     if (statusFilter !== "all" && execution.status !== statusFilter) return false
     if (engineFilter !== "all" && execution.engine !== engineFilter) return false
@@ -203,7 +213,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
   }
 
   const handleViewDetails = (executionId: string, engine: string) => {
-    setSelectedExecution({ id: executionId, engine })
+    setSelectedExecution({ id: executionId, engine: engine || 'flowbit' })
     setDetailsModalOpen(true)
   }
 
@@ -373,7 +383,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedExecutions.map((execution) => (
+                {paginatedExecutions.map((execution) => [
                   <TableRow key={execution.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -413,8 +423,24 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow>,
+                  (execution.output || execution.error) && (
+                    <TableRow key={execution.id + '-output'}>
+                      <TableCell colSpan={7} className="bg-gray-50">
+                        {execution.output && (
+                          <div className="p-2 rounded bg-gray-100 text-gray-800 whitespace-pre-line mb-1">
+                            <strong>Output:</strong> {execution.output}
+                          </div>
+                        )}
+                        {execution.error && execution.error !== '' && (
+                          <div className="p-2 rounded bg-red-100 text-red-800 whitespace-pre-line">
+                            <strong>Error:</strong> {execution.error}
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                ])}
               </TableBody>
             </Table>
           )}
@@ -447,7 +473,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
 
                   return (
                     <Button
-                      key={pageNum}
+                      key={`page-btn-${pageNum}-${i}`}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(pageNum)}
@@ -483,7 +509,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
         open={detailsModalOpen}
         onOpenChange={setDetailsModalOpen}
         executionId={selectedExecution?.id || null}
-        engine={selectedExecution?.engine || null}
+        engine={selectedExecution?.engine || 'flowbit'}
       />
     </div>
   )

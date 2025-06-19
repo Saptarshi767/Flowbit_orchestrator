@@ -1,0 +1,4 @@
+{
+  "PDF Agent": "*/2 * * * *",
+  "Classifier Agent": "0 * * * *"
+}

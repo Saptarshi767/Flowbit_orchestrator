@@ -1,142 +1,95 @@
-import { NextResponse } from "next/server"
+import { NextRequest } from 'next/server'
+import { spawn } from 'child_process'
+import path from 'path'
+import { promises as fs } from 'fs'
 
-// Mock response for when API connections fail
-const mockTriggerResponse = {
-  n8n: {
-    success: true,
-    executionId: "mock-execution-id",
-    message: "Workflow triggered successfully (mock)",
-  },
-  langflow: {
-    success: true,
-    run_id: "mock-run-id",
-    message: "Flow triggered successfully (mock)",
-  },
-}
-
-// Create a timeout promise
-function createTimeoutPromise(ms: number) {
-  return new Promise((_, reject) => {
-    setTimeout(() => reject(new Error("Request timeout")), ms)
-  })
-}
-
-// Fetch with timeout
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 5000) {
+export async function POST(req: NextRequest) {
+  console.log('Trigger API: Received a request.');
+  console.log('Trigger API: Attempting to parse JSON body.');
+  
   try {
-    const fetchPromise = fetch(url, options)
-    const timeoutPromise = createTimeoutPromise(timeoutMs)
+    const body = await req.json()
+    console.log('Trigger API: Successfully parsed body:', body);
+    const { workflow, input } = body
+    console.log('Trigger API: Extracted workflow and input.');
 
-    return (await Promise.race([fetchPromise, timeoutPromise])) as Response
-  } catch (error) {
-    throw error
-  }
-}
-
-async function triggerN8nWorkflow(workflowId: string) {
-  // Check if environment variables are set
-  const n8nBaseUrl = process.env.N8N_BASE_URL
-  const n8nApiKey = process.env.N8N_API_KEY
-
-  if (!n8nBaseUrl || !n8nApiKey) {
-    console.log("N8N environment variables not configured, using mock response")
-    return mockTriggerResponse.n8n
-  }
-
-  try {
-    const url = `${n8nBaseUrl}/rest/workflows/${workflowId}/run`
-    console.log(`Triggering n8n workflow at: ${url}`)
-
-    const response = await fetchWithTimeout(
-      url,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${n8nApiKey}`,
-          "Content-Type": "application/json",
-        },
-      },
-      5000,
-    )
-
-    if (!response.ok) {
-      throw new Error(`n8n API error: ${response.status} ${response.statusText}`)
+    if (!workflow || !input) {
+      console.log('Trigger API: Missing workflow or input in body.');
+      return new Response(JSON.stringify({ error: 'Missing workflow or input' }), { status: 400 })
     }
 
-    return await response.json()
-  } catch (error) {
-    console.error("Error triggering n8n workflow:", error)
-    console.log("Using mock n8n trigger response")
-    return mockTriggerResponse.n8n
-  }
-}
+    const projectRoot = process.cwd()
+    console.log('Trigger API: projectRoot is', projectRoot);
+    const flowPath = path.join(projectRoot, 'flows', workflow)
+    console.log('Trigger API: flowPath is', flowPath);
 
-async function triggerLangflowWorkflow(flowId: string) {
-  // Check if environment variables are set
-  const langflowBaseUrl = process.env.LANGFLOW_BASE_URL
-  const langflowApiKey = process.env.LANGFLOW_API_KEY
-
-  if (!langflowBaseUrl || !langflowApiKey) {
-    console.log("Langflow environment variables not configured, using mock response")
-    return mockTriggerResponse.langflow
-  }
-
-  try {
-    const url = `${langflowBaseUrl}/api/v1/run/${flowId}`
-    console.log(`Triggering Langflow workflow at: ${url}`)
-
-    const response = await fetchWithTimeout(
-      url,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${langflowApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input_value: "Manual trigger from FlowBit Dashboard",
-          input_type: "chat",
-          output_type: "chat",
-        }),
-      },
-      5000,
-    )
-
-    if (!response.ok) {
-      throw new Error(`Langflow API error: ${response.status} ${response.statusText}`)
+    try {
+      await fs.access(flowPath)
+      console.log('Trigger API: Workflow file found.');
+    } catch {
+      console.log('Trigger API: Workflow file not found.');
+      return new Response(JSON.stringify({ error: 'Workflow not found' }), { status: 404 })
     }
 
-    return await response.json()
-  } catch (error) {
-    console.error("Error triggering Langflow workflow:", error)
-    console.log("Using mock Langflow trigger response")
-    return mockTriggerResponse.langflow
-  }
-}
+    // Escape the workflow name for shell usage, but preserve spaces and parentheses
+    const escapedWorkflow = workflow.replace(/'/g, "'\''")
+    console.log('Trigger API: Escaped workflow name:', escapedWorkflow);
 
-export async function POST(request: Request) {
-  try {
-    const { workflowId, engine } = await request.json()
+    // Escape the input JSON for shell usage
+    const escapedInput = JSON.stringify(input).replace(/'/g, "'\''")
+    console.log('Trigger API: Escaped input JSON:', escapedInput);
 
-    if (!workflowId || !engine) {
-      return NextResponse.json({ error: "Missing workflowId or engine" }, { status: 400 })
+    // Execute the python script and capture stdout directly
+    const command = 'docker';
+    const args = [
+      'exec',
+      'flowbit_orchestrator-runner-1',
+      '/bin/sh',
+      '-c',
+      `python /app/run_flow.py '/app/flows/${escapedWorkflow}' '${escapedInput}' 2>&1`,
+    ];
+    console.log('Trigger API: Executing docker command:', command, args);
+    const docker = spawn(command, args, {
+      cwd: projectRoot,
+    })
+
+    let result = ''
+    let error = ''
+
+    docker.stdout.on('data', (data) => {
+      result += data.toString();
+      console.log(`Trigger API (docker stdout):\n${data}`);
+    });
+
+    docker.stderr.on('data', (data) => {
+      error += data.toString();
+      console.error(`Trigger API (docker stderr):\n${data}`);
+    });
+
+    docker.on('error', (err) => {
+      console.error('Trigger API (spawn error): Failed to start subprocess.', err);
+      error += `\nSpawn Error: ${err.message}`;
+    });
+
+    const exitCode = await new Promise<number>((resolve) => {
+      docker.on('close', resolve);
+    });
+    console.log(`Trigger API (spawn close): Child process exited with code ${exitCode}`);
+
+    if (exitCode !== 0) {
+      console.error('Trigger API: Docker exec command failed.', { exitCode, error });
+      return new Response(JSON.stringify({ error: error || 'Execution failed' }), { status: 500 })
     }
 
-    console.log(`Triggering workflow: ${workflowId}, engine: ${engine}`)
+    console.log('Trigger API: Docker exec command succeeded.');
+    // The result is already captured by the stdout listener
+    console.log('Trigger API: Returning captured stdout as result.', result);
+    return new Response(result, { status: 200 })
 
-    let result = null
-
-    if (engine === "n8n") {
-      result = await triggerN8nWorkflow(workflowId)
-    } else if (engine === "langflow") {
-      result = await triggerLangflowWorkflow(workflowId)
-    } else {
-      return NextResponse.json({ error: "Unsupported engine" }, { status: 400 })
-    }
-
-    return NextResponse.json({ success: true, result })
-  } catch (error) {
-    console.error("Error triggering workflow:", error)
-    return NextResponse.json({ error: "Failed to trigger workflow" }, { status: 500 })
+  } catch (err) {
+    console.error('Trigger error:', err)
+    return new Response(JSON.stringify({ error: 'Internal Server Error', details: err }), {
+      status: 500,
+    })
   }
 }

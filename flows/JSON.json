@@ -1,0 +1,39 @@
+{
+  "name": "JSON Extractor",
+  "description": "Extracts key fields from JSON input",
+  "nodes": [
+    {
+      "id": "input",
+      "type": "InputNode",
+      "data": {
+        "input": "Extract key fields from JSON: {json_input}"
+      }
+    },
+    {
+      "id": "llm",
+      "type": "LLMNode",
+      "data": {
+        "model": "tinyllama",
+        "temperature": 0.3,
+        "max_tokens": 200
+      }
+    },
+    {
+      "id": "output",
+      "type": "OutputNode",
+      "data": {
+        "output": "Extracted JSON fields"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "input",
+      "target": "llm"
+    },
+    {
+      "source": "llm",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+Prompt: Classify the intent of this email: Can you schedule a meeting tomorrow?
+
+Error: 404 Client Error: Not Found for url: http://ollama:11434/api/generate

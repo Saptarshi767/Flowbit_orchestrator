@@ -1,0 +1,68 @@
+PS D:\flowbit-orchestrator-manual-flows\Flowbit_orchestrator> python run_flow.py flows/Classifier.json input.json
+--- run_flow.py started (absolute top) ---
+D:\flowbit-orchestrator-manual-flows\Flowbit_orchestrator\run_flow.py:212: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "script_started": datetime.utcnow().isoformat(),
+D:\flowbit-orchestrator-manual-flows\Flowbit_orchestrator\run_flow.py:29: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  f.write(f'{datetime.utcnow().isoformat()} - {message}\n')      
+DEBUG_INFO: {
+  "script_started": "2025-06-19T11:13:45.363249",
+  "sys_argv": [
+    "run_flow.py",
+    "flows/Classifier.json",
+    "input.json"
+  ],
+  "python_version": "3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]",
+  "current_directory": "D:\\flowbit-orchestrator-manual-flows\\Flowbit_orchestrator",
+  "directory_contents": [
+    ".dist",
+    ".env.local",
+    ".git",
+    ".gitignore",
+    ".next",
+    "app",
+    "components",
+    "components.json",
+    "cron-config.json",
+    "docker-compose.yml",
+    "Dockerfile",
+    "Dockerfile.ollama",
+    "Dockerfile.runner",
+    "executions.json",
+    "flows",
+    "hooks",
+    "input.json",
+    "lib",
+    "logs",
+    "mcp-config.json",
+    "next-env.d.ts",
+    "next.config.mjs",
+    "node_modules",
+    "package-lock.json",
+    "package.json",
+    "pnpm-lock.yaml",
+    "postcss.config.mjs",
+    "public",
+    "README.md",
+    "requirements.txt",
+    "run_flow.py",
+    "run_flow_debug.sh",
+    "styles",
+    "tailwind.config.ts",
+    "test_run.py",
+    "tsconfig.json"
+  ]
+}
+INPUT_DEBUG: {
+  "flow_path": "flows/Classifier.json",
+  "input_arg": "input.json",
+  "input_arg_type": "str",
+  "input_arg_stripped": "input.json"
+}
+D:\flowbit-orchestrator-manual-flows\Flowbit_orchestrator\run_flow.py:266: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  start_time = datetime.utcnow()
+DEBUG: Successfully loaded flow with 3 nodes
+D:\flowbit-orchestrator-manual-flows\Flowbit_orchestrator\run_flow.py:317: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  end_time = datetime.utcnow()
+ERROR: Input node with expected structure not found in flow nodes.
+{"id": "c13b7e7a-697a-44ea-bc9d-49bf5f82d768", "flow": "Classifier", "status": "Error", "input": {"text": "The Impact of Artificial Intelligence on Modern Business\n\nArtificial Intelligence (AI) has revolutionized the way businesses operate in the 21st century. From automated customer service to predictive analytics, AI technologies are transforming various aspects of business operations.\n\nKey areas of impact include:\n\n1. Customer Service: AI-powered chatbots and virtual assistants provide 24/7 customer support, reducing response times and improving customer satisfaction.\n\n2. Data Analysis: Machine learning algorithms can process vast amounts of data to identify patterns and trends, helping businesses make data-driven decisions.\n\n3. Process Automation: AI systems can automate repetitive tasks, increasing efficiency and reducing operational costs.\n\n4. Personalization: AI enables businesses to deliver personalized experiences to customers based on their preferences and behavior.\n\n5. Risk Management: AI tools can predict potential risks and help businesses implement preventive measures.\n\nWhile AI offers numerous benefits, businesses must also consider challenges such as data privacy, ethical implications, and the need for human oversight. Successful AI implementation requires careful planning, proper training, and ongoing monitoring."}, "output": "", "error": "Input node with expected structure not found in flow nodes.", "startTime": "2025-06-19T11:13:45.375744", "duration": 0.010563}
+PS D:\flowbit-orchestrator-manual-flows\Flowbit_orchestrator> 

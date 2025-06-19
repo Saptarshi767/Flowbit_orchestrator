@@ -1,0 +1,39 @@
+{
+  "name": "PDF Summarizer",
+  "description": "Summarizes PDF content",
+  "nodes": [
+    {
+      "id": "input",
+      "type": "InputNode",
+      "data": {
+        "input": "Summarize the following PDF content: {text}"
+      }
+    },
+    {
+      "id": "llm",
+      "type": "LLMNode",
+      "data": {
+        "model": "tinyllama",
+        "temperature": 0.5,
+        "max_tokens": 300
+      }
+    },
+    {
+      "id": "output",
+      "type": "OutputNode",
+      "data": {
+        "output": "PDF summary"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "input",
+      "target": "llm"
+    },
+    {
+      "source": "llm",
+      "target": "output"
+    }
+  ]
+}

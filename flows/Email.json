@@ -1,0 +1,39 @@
+{
+  "name": "Email Classifier",
+  "description": "Classifies the intent of an email",
+  "nodes": [
+    {
+      "id": "input",
+      "type": "InputNode",
+      "data": {
+        "input": "Classify the intent of this email: {email_text}"
+      }
+    },
+    {
+      "id": "llm",
+      "type": "LLMNode",
+      "data": {
+        "model": "tinyllama",
+        "temperature": 0.7,
+        "max_tokens": 150
+      }
+    },
+    {
+      "id": "output",
+      "type": "OutputNode",
+      "data": {
+        "output": "Intent classification result"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "input",
+      "target": "llm"
+    },
+    {
+      "source": "llm",
+      "target": "output"
+    }
+  ]
+}

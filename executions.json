@@ -1,0 +1,518 @@
+[
+  {
+    "id": "69fdc341-6bca-4474-a5c2-c0634a46329d",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'str' object has no attribute 'get'",
+    "startTime": "2025-06-05T12:30:14.639788Z",
+    "duration": 0.01
+  },
+  {
+    "id": "bf80e183-a641-4470-9c60-cab121e24eac",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:27:57.360369+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "495c4727-1d3f-45e0-968c-ce0915807ed4",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:28:03.710678+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "39cc3d63-30dc-416b-b866-b077d8bd25a5",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:28:07.836518+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "970e38df-2427-44a0-b08a-79b7d7a8ecd6",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:30:58.866566+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "88b25fc0-10d1-4140-ac44-3034dd734f09",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:31:04.018136+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "29628233-aa14-45cf-bb93-3a57b5485d94",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:33:43.219858+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "382f6ca8-f188-4f38-8f6e-bcadee889b20",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:37:13.343097+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "d2ea6949-1fee-4ec6-b1a2-c67fad19307f",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:40:50.889926+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "0ca67d0d-8db0-4015-9bf1-8dc37e5f785d",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:45:59.736100+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "56d7a5aa-d96b-4b75-810c-d7d4d203a488",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:46:16.660213+00:00",
+    "duration": 0.02
+  },
+  {
+    "id": "ee915fd2-abea-4b62-8ffc-c9469f0b9ab8",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Can you schedule a meeting tomorrow?"
+    },
+    "output": "",
+    "error": "'data'",
+    "startTime": "2025-06-06T08:46:51.439540+00:00",
+    "duration": 0.01
+  },
+  {
+    "id": "c5650ea4-6786-4c2e-bbd0-7c62191a4fb2",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "Ollama request failed: 404 - {\"error\":\"model 'tinyllama' not found\"}",
+    "startTime": "2025-06-06T12:34:07.234220Z",
+    "duration": 0.09
+  },
+  {
+    "id": "9996f8a8-9ee5-475a-9661-8ee9c5d77b8b",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "Ollama request failed: 404 - {\"error\":\"model 'tinyllama' not found\"}",
+    "startTime": "2025-06-06T12:35:54.187547Z",
+    "duration": 0.03
+  },
+  {
+    "id": "6e113fa8-1f85-41a4-a6a8-e443a97ce653",
+    "flow": "Email",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "Ollama request failed: 404 - {\"error\":\"model 'tinyllama' not found\"}",
+    "startTime": "2025-06-06T12:36:53.263381Z",
+    "duration": 0.03
+  },
+  {
+    "id": "b685cc79-99f5-4e1b-ba87-95f33b339a95",
+    "flow": "Email",
+    "status": "Success",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "Response:\nHello [Recipient],\n\nPlease find attached our quarterly report for the period ending March 31, 2021. I hope you find the information contained therein informative and valuable for our ongoing business operations.\n\nAs per our previous communication with the quarterly report that was sent to you on April 3, we are currently reviewing it and would appreciate your feedback on its quality, relevance, and clarity. We have attached a copy of the report for your reference, which includes financial data and other essential details.\n\nPlease let us know your thoughts via email at [Your Email Address] or through our usual channels of phone, chat, or video call by Friday. Thank you for taking the time to review our latest quarterly report, and we look forward to your response.\n\nBest regards,\n[Your Name]\nQuarterly Report Coordinator",
+    "error": null,
+    "startTime": "2025-06-06T12:39:43.806508Z",
+    "duration": 11.67
+  },
+  {
+    "id": "be40f19f-0004-4485-8ea6-85d5d0768ce4",
+    "flow": "PDF",
+    "status": "Success",
+    "input": {
+      "text": "The Impact of Artificial Intelligence on Modern Business\n\nArtificial Intelligence (AI) has revolutionized the way businesses operate in the 21st century. From automated customer service to predictive analytics, AI technologies are transforming various aspects of business operations.\n\nKey areas of impact include:\n\n1. Customer Service: AI-powered chatbots and virtual assistants provide 24/7 customer support, reducing response times and improving customer satisfaction.\n\n2. Data Analysis: Machine learning algorithms can process vast amounts of data to identify patterns and trends, helping businesses make data-driven decisions.\n\n3. Process Automation: AI systems can automate repetitive tasks, increasing efficiency and reducing operational costs.\n\n4. Personalization: AI enables businesses to deliver personalized experiences to customers based on their preferences and behavior.\n\n5. Risk Management: AI tools can predict potential risks and help businesses implement preventive measures.\n\nWhile AI offers numerous benefits, businesses must also consider challenges such as data privacy, ethical implications, and the need for human oversight. Successful AI implementation requires careful planning, proper training, and ongoing monitoring."
+    },
+    "output": "The following PDF content summarizes key areas of impact of Artificial Intelligence (AI) on modern businesses:\n\n1. Improved Customer Service: AI-powered chatbots and virtual assistants provide 24/7 customer support, reducing response times and improving customer satisfaction.\n\n2. Data Analysis: Machine learning algorithms can process vast amounts of data to identify patterns and trends, helping businesses make data-driven decisions.\n\n3. Process Automation: AI systems can automatize repetitive tasks, increasing efficiency and reducing operational costs.\n\n4. Personalization: AI enables businesses to deliver personalized experiences to customers based on their preference and behavior, resulting in increased engagement and loyalty.\n\n5. Risk Management: AI tools can predict potential risks and help businesses implement preventive measures.\n\nWhile AI offers numerous benefits, businesses must also consider challenges such as data privacy, ethical implementation, and the need for human oversight. Successful AI implementations require careful planning, proper training, and ongoing monitoring to ensure successful integration.",
+    "error": null,
+    "startTime": "2025-06-06T12:40:39.832395Z",
+    "duration": 19.02
+  },
+  {
+    "id": "552c0f44-2b04-4c1c-83d3-e30ae13247f2",
+    "flow": "Email\\ Agent\\ \\(1\\)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "[Errno 2] No such file or directory: '/app/flows/Email\\\\ Agent\\\\ \\\\(1\\\\).json'",
+    "startTime": "2025-06-06T13:43:00.761894Z",
+    "duration": 0.01
+  },
+  {
+    "id": "16692a00-a372-4a9a-a251-603997f9ff84",
+    "flow": "Email\\ Agent\\ \\(1\\)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "[Errno 2] No such file or directory: '/app/flows/Email\\\\ Agent\\\\ \\\\(1\\\\).json'",
+    "startTime": "2025-06-06T13:43:18.760779Z",
+    "duration": 0.0
+  },
+  {
+    "id": "385f056d-4ee2-4c6a-8b98-d9b7868ed224",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T13:44:21.248743Z",
+    "duration": 0.02
+  },
+  {
+    "id": "72619b5a-7dc1-426d-ad3b-a72b84326f8c",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T13:45:57.106380Z",
+    "duration": 0.02
+  },
+  {
+    "id": "68ef7671-f5c6-4c2d-99bb-7fdf6bd1bb98",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T13:57:18.088056Z",
+    "duration": 0.02
+  },
+  {
+    "id": "81b1e8a9-ffe9-4277-8569-b664a839aaa6",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:01:06.144376Z",
+    "duration": 0.01
+  },
+  {
+    "id": "00be006a-45ba-44b3-991c-1daee635472f",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:11:09.531677Z",
+    "duration": 0.01
+  },
+  {
+    "id": "0b77e2d1-259d-486e-a684-89e5411c131e",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:14:34.137853Z",
+    "duration": 0.01
+  },
+  {
+    "id": "9affbdb8-65bd-4483-a534-a992be765bfc",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:24:53.444050Z",
+    "duration": 0.01
+  },
+  {
+    "id": "b6befd2e-5260-4562-adb2-0a780074f396",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:27:49.868563Z",
+    "duration": 0.02
+  },
+  {
+    "id": "37a988a8-2478-44d5-b427-6be8710125c1",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:29:49.809742Z",
+    "duration": 0.01
+  },
+  {
+    "id": "a8fa30d7-35eb-4698-b6b6-b93af980ac86",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:31:15.520078Z",
+    "duration": 0.01
+  },
+  {
+    "id": "e51e4acb-c338-4fab-95cf-ce8cb2fb41c7",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:32:28.952106Z",
+    "duration": 0.01
+  },
+  {
+    "id": "423a7632-f9ba-483a-981a-07a8e4712b69",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:34:22.357419Z",
+    "duration": 0.01
+  },
+  {
+    "id": "f79e74be-2c90-4be3-9d6d-636b08d9d6d4",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "'nodes'",
+    "startTime": "2025-06-06T14:42:11.292184Z",
+    "duration": 0.01
+  },
+  {
+    "id": "e41bbcee-f7c8-4ec2-85b2-3165359e5864",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "email_text": "Please review the attached quarterly report and provide feedback by Friday."
+    },
+    "output": "",
+    "error": "Input node data missing required 'input' key or value for node id: ChatInput-D5iWb",
+    "startTime": "2025-06-06T14:49:45.966710",
+    "duration": 0.065929
+  },
+  {
+    "id": "c13b7e7a-697a-44ea-bc9d-49bf5f82d768",
+    "flow": "Classifier",
+    "status": "Error",
+    "input": {
+      "text": "The Impact of Artificial Intelligence on Modern Business\n\nArtificial Intelligence (AI) has revolutionized the way businesses operate in the 21st century. From automated customer service to predictive analytics, AI technologies are transforming various aspects of business operations.\n\nKey areas of impact include:\n\n1. Customer Service: AI-powered chatbots and virtual assistants provide 24/7 customer support, reducing response times and improving customer satisfaction.\n\n2. Data Analysis: Machine learning algorithms can process vast amounts of data to identify patterns and trends, helping businesses make data-driven decisions.\n\n3. Process Automation: AI systems can automate repetitive tasks, increasing efficiency and reducing operational costs.\n\n4. Personalization: AI enables businesses to deliver personalized experiences to customers based on their preferences and behavior.\n\n5. Risk Management: AI tools can predict potential risks and help businesses implement preventive measures.\n\nWhile AI offers numerous benefits, businesses must also consider challenges such as data privacy, ethical implications, and the need for human oversight. Successful AI implementation requires careful planning, proper training, and ongoing monitoring."
+    },
+    "output": "",
+    "error": "Input node with expected structure not found in flow nodes.",
+    "startTime": "2025-06-19T11:13:45.375744",
+    "duration": 0.010563
+  },
+  {
+    "id": "9991fc9c-b797-401a-abc1-a97b68dacdfc",
+    "flow": "Classifier Agent",
+    "status": "Error",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "",
+    "error": "Ollama request failed: 404 - {\"error\":\"model 'tinyllama' not found\"}",
+    "startTime": "2025-06-19T11:47:47.670962+00:00",
+    "duration": 0.096458
+  },
+  {
+    "id": "c389d97a-7eab-4cfd-ab04-31deeafc3730",
+    "flow": "Classifier Agent",
+    "status": "Success",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "The Intent: This message is asking for information about the weather conditions on a specific date and time. The phrase \"what is the weather like today?\" indicates that this message seeks to obtain data or information about the current weather conditions in the given context, either in general or regarding a particular location or circumstance.",
+    "error": "",
+    "startTime": "2025-06-19T11:50:29.897065+00:00",
+    "duration": 3.313544
+  },
+  {
+    "id": "015c404a-6e4b-429e-842d-748acbc33453",
+    "flow": "Classifier Agent",
+    "status": "Success",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "The Intent of this message is to inquire about the weather conditions for the current day. This could be interpreted as asking, \"Hey there! Is it supposed to be sunny today?\" or \"Hey, what's the forecast looking like for tomorrow?\". The context can help give further clues on what kind of information is being sought or requested.",
+    "error": "",
+    "startTime": "2025-06-19T12:02:19.162103+00:00",
+    "duration": 4.532503
+  },
+  {
+    "id": "2e3cb30c-df64-4cc0-bee8-6de0cf11b722",
+    "flow": "Classifier Agent",
+    "status": "Success",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "The message seems to be asking for current weather information, specifically mentioning \"Today\" and \"what is the weather like.\" It does not specify the specific details or location you're inquiring about. The language used in this message may be informal or casual, with a slight emphasis on the word \"today,\" as it could refer to today's current weather conditions, but there's no indication of an urgent need for immediate information or help. Overall, the message seems to have a general purpose of asking for the current weather condition or events in a specific location, without any specific details or requirements.",
+    "error": "",
+    "startTime": "2025-06-19T12:09:39.430243+00:00",
+    "duration": 6.234629
+  },
+  {
+    "id": "aafc1b6f-9ba5-4a76-ad04-71396cf09326",
+    "flow": "Classifier Agent",
+    "status": "Success",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "The intent of this message: What is the Weather Like Today? is to ask for information about the current or recent weather conditions, either locally or globally. It can refer to the temperature, precipitation levels, wind speed, and other weather-related factors. The message may also ask about local events or updates related to weather-related issues.",
+    "error": "",
+    "startTime": "2025-06-19T12:11:15.617227+00:00",
+    "duration": 2.183616
+  },
+  {
+    "id": "2df1cb35-9f7f-4ec9-81c9-c79e15c8a278",
+    "flow": "Classifier Agent",
+    "status": "Success",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "This message, \"What is the weather like today?\" has no sense of purpose or intention. The sentence simply provides information about a certain aspect of the present moment. In English, we use \"What is the weather like today?\" to ask a question, but it's not clear what the answer would be from this particular message.",
+    "error": "",
+    "startTime": "2025-06-19T12:12:46.043969+00:00",
+    "duration": 1.991991
+  },
+  {
+    "id": "26d83467-dc0f-481e-b385-c76eb062409c",
+    "flow": "Classifier Agent",
+    "status": "Success",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "The Intent:\nIn this message, \"Weather Like Today\" means that you will receive information about the current weather conditions in a specific location or area. The text simply expresses the factual nature of the information being conveyed. It does not have any emotional, personal, or sentimental undertones as it is simply stating an objective fact.",
+    "error": "",
+    "startTime": "2025-06-19T12:18:15.261762+00:00",
+    "duration": 3.81211
+  },
+  {
+    "id": "9a4304fb-7631-4a32-9bdb-ea9fe505233a",
+    "flow": "Email Agent (1)",
+    "status": "Error",
+    "input": {
+      "text": "What is the weather like today?"
+    },
+    "output": "",
+    "error": "Expecting value: line 1 column 1 (char 0)",
+    "startTime": "2025-06-19T12:30:25.568697+00:00",
+    "duration": 0.008564
+  },
+  {
+    "id": "c4ec241e-1a52-4d61-834f-4165e2b9be1f",
+    "flow": "Email",
+    "status": "Success",
+    "input": {
+      "email": "What is the weather like today?"
+    },
+    "output": "I don't have access to specific context or language used in the given email. However, based on the content, it is impossible to determine the intent of the message without knowing more about the subject line and sender information. Generally speaking, emails with clear subject lines, such as \"helpful ai assistant\" or \"welcome to my website\", are likely to have a positive, helpful tone. Therefore, this email could be classified as having a positive intention or message.",
+    "error": "",
+    "startTime": "2025-06-19T12:30:47.327621+00:00",
+    "duration": 4.72659
+  }
+]
