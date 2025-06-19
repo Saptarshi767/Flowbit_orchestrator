@@ -1984,3 +1984,71 @@ Test message\n2025-06-06T14:45:58.487443 - Initial debug info: {
 2025-06-19T12:30:47.366999+00:00 - extract_prompt received flow keys: ['name', 'description', 'nodes', 'edges']
 2025-06-19T12:30:47.375505+00:00 - extract_prompt received input_data: {'email': 'What is the weather like today?'}
 2025-06-19T12:30:47.382082+00:00 - Found simple InputNode with template: Classify the intent of this email: {email_text}
+2025-06-19T12:36:37.317841+00:00 - Initial debug info: {
+  "script_started": "2025-06-19T12:36:37.315275+00:00",
+  "sys_argv": [
+    "/app/run_flow.py",
+    "/app/flows/Classifier Agent.json",
+    "{\"text\":\"What is the weather like today?\"}"
+  ],
+  "python_version": "3.11.13 (main, Jun 10 2025, 23:54:42) [GCC 12.2.0]",
+  "current_directory": "/app",
+  "directory_contents": [
+    "executions.json",
+    "logs",
+    "run_flow_debug.sh",
+    "flows",
+    "run_flow.py",
+    "requirements.txt"
+  ]
+}
+2025-06-19T12:36:37.322383+00:00 - Input debug info: {
+  "flow_path": "/app/flows/Classifier Agent.json",
+  "input_arg": "{\"text\":\"What is the weather like today?\"}",
+  "input_arg_type": "str",
+  "input_arg_stripped": "{\"text\":\"What is the weather like today?\"}"
+}
+2025-06-19T12:36:37.326002+00:00 - Successfully parsed input data from JSON string: {'text': 'What is the weather like today?'}
+2025-06-19T12:36:37.329910+00:00 - Attempting to load workflow from path: /app/flows/Classifier Agent.json
+2025-06-19T12:36:37.334559+00:00 - Attempting to load workflow from path: /app/flows/Classifier Agent.json
+2025-06-19T12:36:37.348457+00:00 - Successfully loaded workflow JSON.
+2025-06-19T12:36:37.352345+00:00 - Type of loaded workflow: dict
+2025-06-19T12:36:37.357303+00:00 - Top-level keys present: ['access_type', 'action_description', 'action_name', 'data', 'description', 'endpoint_name', 'folder_id', 'fs_path', 'gradient', 'icon', 'icon_bg_color', 'id', 'is_component', 'locked', 'mcp_enabled', 'name', 'tags', 'updated_at', 'user_id', 'webhook']
+2025-06-19T12:36:37.361081+00:00 - Found 'data' key in workflow.
+2025-06-19T12:36:37.364540+00:00 - Content of 'data' is a dictionary. Keys present: ['edges', 'nodes', 'viewport']
+2025-06-19T12:36:37.373427+00:00 - Found 'nodes' and 'edges' under 'data'.
+2025-06-19T12:36:37.378225+00:00 - 'data.nodes' and 'data.edges' are lists.
+2025-06-19T12:36:37.382766+00:00 - Successfully loaded flow with 4 nodes
+2025-06-19T12:36:37.386001+00:00 - extract_prompt received flow keys: ['nodes', 'edges']
+2025-06-19T12:36:37.388367+00:00 - extract_prompt received input_data: {'text': 'What is the weather like today?'}
+2025-06-19T12:36:37.390098+00:00 - Found ChatInput node with id: ChatInput-auXAM
+2025-06-19T12:36:37.393120+00:00 - Found LangFlow Prompt node with template: What is the intent of this message: {text}
+2025-06-19T12:50:13.117040+00:00 - Initial debug info: {
+  "script_started": "2025-06-19T12:50:13.113727+00:00",
+  "sys_argv": [
+    "/app/run_flow.py",
+    "/app/flows/Email Agent (1).json",
+    "{\"text\":\"What is the weather like today?\"}"
+  ],
+  "python_version": "3.11.13 (main, Jun 10 2025, 23:54:42) [GCC 12.2.0]",
+  "current_directory": "/app",
+  "directory_contents": [
+    "executions.json",
+    "logs",
+    "run_flow_debug.sh",
+    "flows",
+    "run_flow.py",
+    "requirements.txt"
+  ]
+}
+2025-06-19T12:50:13.124699+00:00 - Input debug info: {
+  "flow_path": "/app/flows/Email Agent (1).json",
+  "input_arg": "{\"text\":\"What is the weather like today?\"}",
+  "input_arg_type": "str",
+  "input_arg_stripped": "{\"text\":\"What is the weather like today?\"}"
+}
+2025-06-19T12:50:13.131276+00:00 - Successfully parsed input data from JSON string: {'text': 'What is the weather like today?'}
+2025-06-19T12:50:13.137684+00:00 - Attempting to load workflow from path: /app/flows/Email Agent (1).json
+2025-06-19T12:50:13.146284+00:00 - Attempting to load workflow from path: /app/flows/Email Agent (1).json
+2025-06-19T12:50:13.158532+00:00 - Error: Failed to parse workflow JSON: Expecting value: line 1 column 1 (char 0)
+2025-06-19T12:50:13.166125+00:00 - Error during flow execution: Expecting value: line 1 column 1 (char 0)

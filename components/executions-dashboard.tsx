@@ -391,12 +391,12 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                         {getStatusBadge(execution.status)}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{execution.workflowName}</TableCell>
-                    <TableCell>{getEngineBadge(execution.engine)}</TableCell>
+                    <TableCell className="font-medium">{execution.workflowName || execution.flow || 'Unknown'}</TableCell>
+                    <TableCell>{getEngineBadge('langflow')}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {getTriggerIcon(execution.triggerType)}
-                        <span className="capitalize">{execution.triggerType}</span>
+                        {getTriggerIcon(execution.triggerType || 'manual')}
+                        <span className="capitalize">{execution.triggerType || 'manual'}</span>
                       </div>
                     </TableCell>
                     <TableCell>{execution.duration}</TableCell>
@@ -449,9 +449,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
           {filteredExecutions.length > 0 && (
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(currentPage * itemsPerPage, filteredExecutions.length)} of {filteredExecutions.length}{" "}
-                executions
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredExecutions.length)} of {filteredExecutions.length} executions
               </div>
               <div className="flex gap-1">
                 <Button variant="outline" size="sm" onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
@@ -465,15 +463,17 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                 >
                   Previous
                 </Button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum = currentPage - 2 + i
-                  if (pageNum < 1) pageNum = i + 1
-                  if (pageNum > totalPages) pageNum = totalPages - (4 - i)
-                  if (pageNum < 1 || pageNum > totalPages) return null
-
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                  // Only show up to 5 page buttons, centered around the current page
+                  if (
+                    totalPages > 5 &&
+                    (pageNum < Math.max(1, currentPage - 2) || pageNum > Math.min(totalPages, currentPage + 2))
+                  ) {
+                    return null;
+                  }
                   return (
                     <Button
-                      key={`page-btn-${pageNum}-${i}`}
+                      key={`page-btn-${pageNum}`}
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(pageNum)}
@@ -481,7 +481,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                     >
                       {pageNum}
                     </Button>
-                  )
+                  );
                 })}
                 <Button
                   variant="outline"

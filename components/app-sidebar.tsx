@@ -170,9 +170,7 @@ export function AppSidebar() {
                               className="flex items-center justify-between"
                             >
                               <span className="truncate">{wf.name}</span>
-                              <Badge variant="outline" className={`text-xs ${wf.engine === 'langflow' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                                {wf.engine === 'langflow' ? 'LangFlow' : 'Flowbit'}
-                              </Badge>
+                              <Badge className="bg-green-100 text-green-800">LangFlow</Badge>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
