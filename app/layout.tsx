@@ -1,11 +1,16 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 
+const inter = Inter({ subsets: ['latin'] })
+
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'FlowBit',
+  description: 'Build, automate, and orchestrate your AI workflows visually.',
+  icons: {
+    icon: '/placeholder-logo.svg',
+  },
 }
 
 export default function RootLayout({
@@ -15,8 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>
