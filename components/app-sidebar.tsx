@@ -102,16 +102,15 @@ export function AppSidebar() {
   }
 
   return (
+    <div className="glass dark:glass-dark bg-flowbit-teal/20 dark:bg-flowbit-deep/40 rounded-r-3xl shadow-xl min-h-screen">
     <Sidebar className="border-r border-gray-200">
-      <SidebarHeader className="border-b border-gray-200 p-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#7575e4] rounded-lg flex items-center justify-center">
-            <Workflow className="w-5 h-5 text-white" />
+        <SidebarHeader className="border-b border-flowbit-blue p-4 bg-white/60 dark:bg-flowbit-blue/40 rounded-t-3xl mb-2 shadow flex items-center gap-2">
+          <div className="w-10 h-10 bg-flowbit-blue rounded-xl flex items-center justify-center shadow-lg">
+            <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><rect width="24" height="24" rx="6"/></svg>
           </div>
           <div>
-            <h1 className="font-semibold text-gray-900">FlowBit</h1>
-            <p className="text-xs text-gray-500">Orchestration</p>
-          </div>
+            <h1 className="font-extrabold text-flowbit-deep text-lg tracking-tight">FlowBit</h1>
+            <p className="text-xs text-flowbit-blue font-semibold">Orchestration</p>
         </div>
       </SidebarHeader>
 
@@ -170,7 +169,7 @@ export function AppSidebar() {
                               className="flex items-center justify-between"
                             >
                               <span className="truncate">{wf.name}</span>
-                              <Badge className="bg-green-100 text-green-800">LangFlow</Badge>
+                                <Badge className="bg-flowbit-teal text-flowbit-deep shadow">LangFlow</Badge>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
@@ -196,5 +195,6 @@ export function AppSidebar() {
         <div className="text-xs text-gray-500">FlowBit Orchestration v1.1</div>
       </SidebarFooter>
     </Sidebar>
+    </div>
   );
 }

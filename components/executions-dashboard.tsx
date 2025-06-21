@@ -155,11 +155,11 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "success":
-        return <Badge className="bg-green-100 text-green-800">Success</Badge>
+        return <Badge className="bg-flowbit-teal/20 text-flowbit-deep">Success</Badge>
       case "error":
         return <Badge className="bg-red-100 text-red-800">Error</Badge>
       case "running":
-        return <Badge className="bg-blue-100 text-blue-800">Running</Badge>
+        return <Badge className="bg-flowbit-blue/20 text-flowbit-blue">Running</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
@@ -168,11 +168,11 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
   const getEngineBadge = (engine: string) => {
     switch (engine) {
       case "n8n":
-        return <Badge className="bg-blue-100 text-blue-800">n8n</Badge>
+        return <Badge className="bg-flowbit-deep/20 text-flowbit-deep">n8n</Badge>
       case "langflow":
-        return <Badge className="bg-green-100 text-green-800">Langflow</Badge>
+        return <Badge className="bg-flowbit-medium/20 text-flowbit-medium">Langflow</Badge>
       case "langsmith":
-        return <Badge className="bg-purple-100 text-purple-800">LangSmith</Badge>
+        return <Badge className="bg-flowbit-blue/20 text-flowbit-blue">LangSmith</Badge>
       default:
         return <Badge variant="outline">{engine}</Badge>
     }
@@ -267,6 +267,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
       )}
 
       {/* Stats Cards */}
+      <div className="glass dark:glass-dark bg-white/80 dark:bg-flowbit-blue/30 rounded-2xl shadow-lg p-4 mb-6 border border-flowbit-blue/30">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -307,9 +308,11 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
             <div className="text-2xl font-bold text-blue-600">{runningCount}</div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Filters */}
+      <div className="glass dark:glass-dark bg-white/80 dark:bg-flowbit-blue/30 rounded-2xl shadow-lg p-4 mb-6 border border-flowbit-blue/30">
       <div className="flex gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
@@ -339,6 +342,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
           {refreshing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
           Refresh
         </Button>
+        </div>
       </div>
 
       {/* Executions Table */}
@@ -426,7 +430,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                   </TableRow>,
                   (execution.output || execution.error) && (
                     <TableRow key={execution.id + '-output'}>
-                      <TableCell colSpan={7} className="bg-gray-50">
+                      <TableCell colSpan={7} className="bg-flowbit-teal/5">
                         {execution.output && (
                           <div className="p-2 rounded bg-gray-100 text-gray-800 whitespace-pre-line mb-1">
                             <strong>Output:</strong> {execution.output}

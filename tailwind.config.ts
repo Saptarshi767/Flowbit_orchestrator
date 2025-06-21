@@ -63,6 +63,12 @@ const config: Config = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        flowbit: {
+          teal: '#00E6C3',
+          medium: '#00B3A4',
+          blue: '#0099E6',
+          deep: '#0066B3',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

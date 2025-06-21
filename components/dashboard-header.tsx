@@ -12,7 +12,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onCreateWorkflow }: DashboardHeaderProps) {
   return (
-    <header className="border-b border-gray-200 bg-white px-6 py-4">
+    <header className="glass dark:glass-dark border-b border-flowbit-blue bg-gradient-to-r from-flowbit-blue/90 to-flowbit-deep/80 dark:bg-gradient-to-r dark:from-flowbit-blue/80 dark:to-flowbit-deep/90 bg-opacity-80 px-8 py-6 rounded-t-3xl shadow-xl text-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
@@ -34,7 +34,11 @@ export function DashboardHeader({ onCreateWorkflow }: DashboardHeaderProps) {
           </Button>
 
           <Link href="/sample-data">
-            <Button variant="outline">View Sample Data</Button>
+            <Button
+              className="bg-flowbit-teal text-white border border-flowbit-teal shadow hover:bg-flowbit-blue hover:text-white dark:bg-white dark:text-flowbit-blue dark:border-flowbit-blue dark:hover:bg-flowbit-blue dark:hover:text-white transition"
+            >
+              View Sample Data
+            </Button>
           </Link>
         </div>
       </div>

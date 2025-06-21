@@ -474,11 +474,11 @@ export function ExecutionDetailsSample() {
     const normalizedStatus = status.toLowerCase()
     switch (normalizedStatus) {
       case "success":
-        return <Badge className="bg-green-100 text-green-800">Success</Badge>
+        return <Badge className="bg-flowbit-teal/20 text-flowbit-deep">Success</Badge>
       case "error":
         return <Badge className="bg-red-100 text-red-800">Error</Badge>
       case "running":
-        return <Badge className="bg-blue-100 text-blue-800">Running</Badge>
+        return <Badge className="bg-flowbit-blue/20 text-flowbit-blue">Running</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
@@ -553,7 +553,7 @@ export function ExecutionDetailsSample() {
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-600" />
               n8n Successful Execution
-              <Badge className="ml-auto bg-blue-100 text-blue-800">n8n</Badge>
+              <Badge className="ml-auto bg-flowbit-deep/20 text-flowbit-deep">n8n</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -564,7 +564,7 @@ export function ExecutionDetailsSample() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Status:</span>
-                <Badge className="bg-green-100 text-green-800">Success</Badge>
+                <Badge className="bg-flowbit-teal/20 text-flowbit-deep">Success</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Duration:</span>
@@ -582,7 +582,7 @@ export function ExecutionDetailsSample() {
             <CardTitle className="flex items-center gap-2">
               <XCircle className="w-5 h-5 text-red-600" />
               n8n Failed Execution
-              <Badge className="ml-auto bg-blue-100 text-blue-800">n8n</Badge>
+              <Badge className="ml-auto bg-flowbit-deep/20 text-flowbit-deep">n8n</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -611,7 +611,7 @@ export function ExecutionDetailsSample() {
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-600" />
               Langflow Successful Execution
-              <Badge className="ml-auto bg-green-100 text-green-800">Langflow</Badge>
+              <Badge className="bg-flowbit-medium/20 text-flowbit-medium">Langflow</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -622,7 +622,7 @@ export function ExecutionDetailsSample() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Status:</span>
-                <Badge className="bg-green-100 text-green-800">Success</Badge>
+                <Badge className="bg-flowbit-teal/20 text-flowbit-deep">Success</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Duration:</span>
@@ -640,7 +640,7 @@ export function ExecutionDetailsSample() {
             <CardTitle className="flex items-center gap-2">
               <XCircle className="w-5 h-5 text-red-600" />
               Langflow Failed Execution
-              <Badge className="ml-auto bg-green-100 text-green-800">Langflow</Badge>
+              <Badge className="bg-flowbit-medium/20 text-flowbit-medium">Langflow</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -807,7 +807,7 @@ export function ExecutionDetailsSample() {
                                           Copy
                                         </Button>
                                       </div>
-                                      <pre className="text-xs bg-gray-50 p-2 rounded whitespace-pre-wrap max-h-40 overflow-auto">
+                                      <pre className="text-xs bg-flowbit-teal/5 p-2 rounded whitespace-pre-wrap max-h-40 overflow-auto">
                                         {JSON.stringify(node.data, null, 2)}
                                       </pre>
                                     </div>
