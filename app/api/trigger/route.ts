@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (workflow === 'langflow') {
-      // Replace '/api/your-endpoint' with the actual Langflow endpoint you want to call
-      const langflowRes = await fetch(`${LANGFLOW_URL}/api/your-endpoint`, {
+      // Updated to a typical Langflow endpoint
+      const langflowRes = await fetch(`${LANGFLOW_URL}/api/v1/predict`, {
         method: 'POST',
         body: JSON.stringify(input),
         headers: { 'Content-Type': 'application/json' },

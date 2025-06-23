@@ -55,19 +55,11 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # These will be overridden by .env.production if present
       - OLLAMA_URL=http://ollama:11434
       - LANGFLOW_URL=http://langflow:7860
-    # In production, you may want to remove most volume mounts except for persistent data
+    # Only mount persistent data if needed
     volumes:
-      - ./app:/app/app
-      - ./components:/app/components
       - ./public:/app/public
-      - ./styles:/app/styles
-      - ./lib:/app/lib
-      - ./hooks:/app/hooks
-      - ./prisma:/app/prisma
-      - ./node_modules:/app/node_modules
     depends_on:
       - runner
       - redis
