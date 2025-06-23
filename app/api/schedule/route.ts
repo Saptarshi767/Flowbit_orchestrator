@@ -1,7 +1,17 @@
 import { NextRequest } from 'next/server';
 import { addCronJob } from '@/lib/cron';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || !('id' in session.user) || !session.user.id) {
+    return new Response(
+      JSON.stringify({ error: 'Not authenticated' }),
+      { status: 401 }
+    );
+  }
+  const userId = session.user.id;
   try {
     const body = await req.json();
     const workflow = body.workflow;
@@ -15,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const jobId = addCronJob(workflow, cronExpr, input);
+    const jobId = addCronJob(workflow, cronExpr, input, userId);
 
     return new Response(
       JSON.stringify({ 

@@ -2,32 +2,87 @@ import * as cron from 'node-cron';
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
+import { v4 as uuidv4 } from 'uuid';
 
 const JOBS_FILE = path.join(process.cwd(), 'cron-config.json');
+const EXECUTIONS_FILE = path.join(process.cwd(), 'executions.json');
 
 type CronJob = {
   workflowId: string;
   schedule: string;
   input: any;
   id: string;
+  userId?: string;
 };
 
 let jobs: CronJob[] = [];
 let scheduledTasks: Map<string, cron.ScheduledTask> = new Map();
 
-function runWorkflow(workflowId: string, input: any) {
+function updateExecutionStatus(executionId: string, status: string, output?: string, error?: string) {
+  try {
+    if (!fs.existsSync(EXECUTIONS_FILE)) return;
+    const file = fs.readFileSync(EXECUTIONS_FILE, 'utf-8');
+    const executions = JSON.parse(file);
+    const idx = executions.findIndex((e: any) => e.id === executionId);
+    if (idx !== -1) {
+      executions[idx].status = status;
+      if (output) executions[idx].output = output;
+      if (error) executions[idx].error = error;
+      executions[idx].endTime = new Date().toISOString();
+    }
+    fs.writeFileSync(EXECUTIONS_FILE, JSON.stringify(executions, null, 2));
+  } catch {}
+}
+
+function runWorkflow(workflowId: string, input: any, userId?: string) {
   const flowPath = path.join(process.cwd(), 'flows', workflowId + '.json');
+  const executionId = uuidv4();
+  // Add execution with status Running
+  let allExecutions = [];
+  try {
+    if (fs.existsSync(EXECUTIONS_FILE)) {
+      const file = fs.readFileSync(EXECUTIONS_FILE, 'utf-8');
+      allExecutions = JSON.parse(file);
+    }
+  } catch {}
+  const execution = {
+    id: executionId,
+    userId: userId || null,
+    flow: workflowId,
+    status: 'Running',
+    input,
+    output: '',
+    error: null,
+    startTime: new Date().toISOString(),
+    duration: 0
+  };
+  allExecutions.push(execution);
+  fs.writeFileSync(EXECUTIONS_FILE, JSON.stringify(allExecutions, null, 2));
+
   const python = spawn(process.platform === 'win32' ? 'python' : 'python3', ['run_flow.py', flowPath, JSON.stringify(input)], {
     cwd: process.cwd(),
     shell: true,
   });
 
+  let output = '';
+  let error = '';
+
   python.stdout.on('data', (data) => {
+    output += data.toString();
     console.log(`[CRON-${workflowId}]`, data.toString());
   });
 
   python.stderr.on('data', (data) => {
+    error += data.toString();
     console.error(`[CRON-${workflowId}-ERROR]`, data.toString());
+  });
+
+  python.on('close', (code) => {
+    if (code === 0) {
+      updateExecutionStatus(executionId, 'Success', output, null);
+    } else {
+      updateExecutionStatus(executionId, 'Failed', output, error || 'Unknown error');
+    }
   });
 }
 
@@ -70,7 +125,7 @@ export function setupCronJobs() {
 
   for (const job of jobs) {
     if (cron.validate(job.schedule)) {
-      const task = cron.schedule(job.schedule, () => runWorkflow(job.workflowId, job.input), {
+      const task = cron.schedule(job.schedule, () => runWorkflow(job.workflowId, job.input, job.userId), {
         scheduled: false
       });
       task.start();
@@ -80,13 +135,14 @@ export function setupCronJobs() {
   }
 }
 
-export function addCronJob(workflowId: string, schedule: string, input: any): string {
+export function addCronJob(workflowId: string, schedule: string, input: any, userId?: string): string {
   const jobId = `${workflowId}-${Date.now()}`;
   const job: CronJob = {
     id: jobId,
     workflowId,
     schedule,
-    input
+    input,
+    userId
   };
 
   if (!cron.validate(schedule)) {
@@ -96,7 +152,7 @@ export function addCronJob(workflowId: string, schedule: string, input: any): st
   jobs.push(job);
   fs.writeFileSync(JOBS_FILE, JSON.stringify(jobs, null, 2));
 
-  const task = cron.schedule(schedule, () => runWorkflow(workflowId, input), {
+  const task = cron.schedule(schedule, () => runWorkflow(workflowId, input, userId), {
     scheduled: false
   });
   task.start();

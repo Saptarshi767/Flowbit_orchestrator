@@ -23,6 +23,7 @@ export function TriggerWorkflowModal({ open, onOpenChange, workflowId }: Trigger
   const [cronExpr, setCronExpr] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [output, setOutput] = useState<string | null>(null);
 
   const webhookUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/api/hooks/${workflowId}`;
   const isCronValid = isValidCron(cronExpr, { seconds: false });
@@ -37,6 +38,7 @@ export function TriggerWorkflowModal({ open, onOpenChange, workflowId }: Trigger
   const handleManualTrigger = async () => {
     try {
       setLoading(true);
+      setOutput(null);
       let parsedInput;
       try {
         parsedInput = JSON.parse(jsonInput);
@@ -56,14 +58,16 @@ export function TriggerWorkflowModal({ open, onOpenChange, workflowId }: Trigger
         }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
+        setOutput(data.error ? String(data.error) : "Trigger failed");
         throw new Error("Trigger failed");
       }
-
+      setOutput(data.output ? String(data.output) : JSON.stringify(data, null, 2));
       toast.success("Workflow triggered successfully");
-      onOpenChange(false);
     } catch (err) {
       console.error("Trigger failed", err);
+      if (!output) setOutput("Failed to trigger workflow");
       toast.error("Failed to trigger workflow");
     } finally {
       setLoading(false);
@@ -132,6 +136,12 @@ export function TriggerWorkflowModal({ open, onOpenChange, workflowId }: Trigger
                 "Trigger"
               )}
             </Button>
+            {output && (
+              <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-700">
+                <strong>Output:</strong>
+                <pre className="whitespace-pre-wrap break-all text-sm">{output}</pre>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="webhook">
