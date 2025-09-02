@@ -29,7 +29,7 @@ const iconHover = {
 
 // 3D Interactive Card Component
 const InteractiveCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
