@@ -4,10 +4,10 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Bell, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Bell,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Info,
   Trash2,
@@ -211,21 +211,20 @@ export default function NotificationsPage() {
               {mockNotifications.map((notification) => {
                 const config = notificationConfig[notification.type]
                 const Icon = config.icon
-                
+
                 return (
                   <div
                     key={notification.id}
-                    className={`p-4 border rounded-lg transition-colors ${
-                      notification.read 
-                        ? "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900" 
-                        : `${config.borderColor} ${config.bgColor}`
-                    } hover:shadow-md`}
+                    className={`p-4 border rounded-lg transition-colors ${notification.read
+                      ? "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+                      : `${config.borderColor} ${config.bgColor}`
+                      } hover:shadow-md`}
                   >
                     <div className="flex items-start space-x-4">
                       <div className={`p-2 rounded-lg ${config.bgColor}`}>
                         <Icon className={`w-5 h-5 ${config.color}`} />
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <h3 className="font-medium text-gray-900 dark:text-white">
@@ -234,25 +233,25 @@ export default function NotificationsPage() {
                           {!notification.read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full" />
                           )}
-                          <Badge 
-                            variant={notification.type === "error" ? "destructive" : 
-                                   notification.type === "warning" ? "warning" :
-                                   notification.type === "success" ? "success" : "default"}
+                          <Badge
+                            variant={notification.type === "error" ? "destructive" :
+                              notification.type === "warning" ? "warning" :
+                                notification.type === "success" ? "success" : "default"}
                             className="text-xs"
                           >
                             {notification.type}
                           </Badge>
                         </div>
-                        
+
                         <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                           {notification.message}
                         </p>
-                        
+
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {formatDistanceToNow(notification.timestamp)} ago
                           </span>
-                          
+
                           <div className="flex items-center space-x-2">
                             {notification.actionUrl && (
                               <Button variant="ghost" size="sm">

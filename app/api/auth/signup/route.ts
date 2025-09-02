@@ -17,8 +17,33 @@ export async function POST(req: NextRequest) {
     }
     // Hash password
     const hashed = await bcrypt.hash(password, 10);
+    
+    // Create organization for the user (or find default one)
+    let organization = await prisma.organization.findFirst({
+      where: { slug: 'default' }
+    });
+    
+    if (!organization) {
+      organization = await prisma.organization.create({
+        data: {
+          name: 'Default Organization',
+          slug: 'default',
+          plan: 'FREE'
+        }
+      });
+    }
+    
     // Create user
-    await prisma.user.create({ data: { email, name: email, image: null, password: hashed } });
+    await prisma.user.create({ 
+      data: { 
+        email, 
+        name: email, 
+        image: null, 
+        password: hashed,
+        organizationId: organization.id,
+        role: 'DEVELOPER'
+      } 
+    });
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });

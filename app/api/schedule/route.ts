@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { addCronJob } from '@/lib/cron';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
