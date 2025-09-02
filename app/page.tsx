@@ -24,7 +24,7 @@ const staggerContainer = {
 
 const iconHover = {
   y: [0, -5, 0],
-  transition: { duration: 0.5, repeat: Infinity, repeatType: "loop" }
+  transition: { duration: 0.5, repeat: Infinity, repeatType: "loop" as const }
 };
 
 // 3D Interactive Card Component
