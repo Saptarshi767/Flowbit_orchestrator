@@ -1,0 +1,28 @@
+{"channel":"#notifications","deliveryId":"slack-1756623247118-j7xzyrne2","error":"channel_not_found","level":"error","message":"Failed to send Slack notification","service":"notification-service","timestamp":"2025-08-31T06:54:07.119Z"}
+{"channel":"#notifications","deliveryId":"slack-1756623247121-0wzae8vay","error":"Network error","level":"error","message":"Failed to send Slack notification","service":"notification-service","timestamp":"2025-08-31T06:54:07.122Z"}
+{"channel":"#general","error":"invalid_auth","level":"error","message":"Failed to send Slack direct message","service":"notification-service","timestamp":"2025-08-31T06:54:07.127Z"}
+{"error":"invalid_auth","level":"error","message":"Slack connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:07.131Z"}
+{"error":"Network error","level":"error","message":"Slack connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:07.132Z"}
+{"error":{},"level":"error","message":"Failed to initialize email service","service":"notification-service","timestamp":"2025-08-31T06:54:07.255Z"}
+{"deliveryId":"email-1756623247281-vowcb7lrw","error":"SMTP connection failed","level":"error","message":"Failed to send email notification","recipient":"user@example.com","service":"notification-service","timestamp":"2025-08-31T06:54:07.282Z"}
+{"error":"Send failed","level":"error","message":"Failed to send direct email","recipient":"user@example.com","service":"notification-service","subject":"Test Subject","timestamp":"2025-08-31T06:54:07.297Z"}
+{"error":{},"level":"error","message":"Email connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:07.298Z"}
+{"deliveryId":"teams-1756623247460-bnr9592gb","error":"Request failed with status code 400","level":"error","message":"Failed to send Teams notification","service":"notification-service","timestamp":"2025-08-31T06:54:07.486Z"}
+{"deliveryId":"teams-1756623247488-wixicq372","error":"ECONNREFUSED","level":"error","message":"Failed to send Teams notification","service":"notification-service","timestamp":"2025-08-31T06:54:07.505Z"}
+{"error":"Request failed with status code 500","level":"error","message":"Failed to send Teams direct message","service":"notification-service","timestamp":"2025-08-31T06:54:07.556Z"}
+{"error":"Request failed with status code 404","level":"error","message":"Teams connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:07.588Z"}
+{"error":"ENOTFOUND","level":"error","message":"Teams connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:07.596Z"}
+{"error":{},"level":"error","message":"Failed to initialize email service","service":"notification-service","timestamp":"2025-08-31T06:54:34.796Z"}
+{"channel":"#notifications","deliveryId":"slack-1756623274799-vuzs6yzdg","error":"channel_not_found","level":"error","message":"Failed to send Slack notification","service":"notification-service","timestamp":"2025-08-31T06:54:34.799Z"}
+{"channel":"#notifications","deliveryId":"slack-1756623274801-6s53tlwrr","error":"Network error","level":"error","message":"Failed to send Slack notification","service":"notification-service","timestamp":"2025-08-31T06:54:34.801Z"}
+{"channel":"#general","error":"invalid_auth","level":"error","message":"Failed to send Slack direct message","service":"notification-service","timestamp":"2025-08-31T06:54:34.805Z"}
+{"error":"invalid_auth","level":"error","message":"Slack connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:34.807Z"}
+{"error":"Network error","level":"error","message":"Slack connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:34.808Z"}
+{"deliveryId":"email-1756623274818-elnnig4at","error":"SMTP connection failed","level":"error","message":"Failed to send email notification","recipient":"user@example.com","service":"notification-service","timestamp":"2025-08-31T06:54:34.820Z"}
+{"error":"Send failed","level":"error","message":"Failed to send direct email","recipient":"user@example.com","service":"notification-service","subject":"Test Subject","timestamp":"2025-08-31T06:54:34.830Z"}
+{"error":{},"level":"error","message":"Email connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:34.832Z"}
+{"deliveryId":"teams-1756623275037-5agtzw0bo","error":"Request failed with status code 400","level":"error","message":"Failed to send Teams notification","service":"notification-service","timestamp":"2025-08-31T06:54:35.057Z"}
+{"deliveryId":"teams-1756623275058-3feubc8cm","error":"ECONNREFUSED","level":"error","message":"Failed to send Teams notification","service":"notification-service","timestamp":"2025-08-31T06:54:35.082Z"}
+{"error":"Request failed with status code 500","level":"error","message":"Failed to send Teams direct message","service":"notification-service","timestamp":"2025-08-31T06:54:35.114Z"}
+{"error":"Request failed with status code 404","level":"error","message":"Teams connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:35.147Z"}
+{"error":"ENOTFOUND","level":"error","message":"Teams connection test failed","service":"notification-service","timestamp":"2025-08-31T06:54:35.151Z"}

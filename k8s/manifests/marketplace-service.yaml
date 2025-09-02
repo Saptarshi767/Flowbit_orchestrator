@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketplace-service
+  namespace: ai-orchestrator
+  labels:
+    app: marketplace-service
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: marketplace-service
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: marketplace-service
+        version: v1
+    spec:
+      containers:
+      - name: marketplace-service
+        image: ai-orchestrator/marketplace-service:latest
+        ports:
+        - containerPort: 3007
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: MARKETPLACE_SERVICE_PORT
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: POSTGRES_PASSWORD
+        - name: ELASTICSEARCH_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: ELASTICSEARCH_HOST
+        - name: ELASTICSEARCH_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: ELASTICSEARCH_PORT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3007
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3007
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: file-storage
+          mountPath: /app/storage
+      volumes:
+      - name: file-storage
+        persistentVolumeClaim:
+          claimName: file-storage-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marketplace-service
+  namespace: ai-orchestrator
+  labels:
+    app: marketplace-service
+spec:
+  selector:
+    app: marketplace-service
+  ports:
+  - port: 3007
+    targetPort: 3007
+    name: http
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: marketplace-service-hpa
+  namespace: ai-orchestrator
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: marketplace-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

@@ -1,0 +1,155 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-gateway-dr
+  namespace: ai-orchestrator
+spec:
+  host: api-gateway-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        maxRequestsPerConnection: 10
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: auth-service-dr
+  namespace: ai-orchestrator
+spec:
+  host: auth-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+      http:
+        http1MaxPendingRequests: 25
+        maxRequestsPerConnection: 5
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: orchestration-service-dr
+  namespace: ai-orchestrator
+spec:
+  host: orchestration-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 200
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 20
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: workflow-service-dr
+  namespace: ai-orchestrator
+spec:
+  host: workflow-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        maxRequestsPerConnection: 10
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: execution-service-dr
+  namespace: ai-orchestrator
+spec:
+  host: execution-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 300
+      http:
+        http1MaxPendingRequests: 150
+        maxRequestsPerConnection: 30
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 30
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: monitoring-service-dr
+  namespace: ai-orchestrator
+spec:
+  host: monitoring-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        maxRequestsPerConnection: 10
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: v1

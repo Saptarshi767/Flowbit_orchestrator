@@ -1,0 +1,158 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: ai-orchestrator-gateway
+  namespace: ai-orchestrator
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: ai-orchestrator-tls
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ai-orchestrator-vs
+  namespace: ai-orchestrator
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - ai-orchestrator-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/auth
+    route:
+    - destination:
+        host: auth-service
+        port:
+          number: 3001
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /api/orchestration
+    route:
+    - destination:
+        host: orchestration-service
+        port:
+          number: 3002
+    timeout: 60s
+    retries:
+      attempts: 3
+      perTryTimeout: 20s
+  - match:
+    - uri:
+        prefix: /api/workflows
+    route:
+    - destination:
+        host: workflow-service
+        port:
+          number: 3003
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /api/executions
+    route:
+    - destination:
+        host: execution-service
+        port:
+          number: 3004
+    timeout: 120s
+    retries:
+      attempts: 2
+      perTryTimeout: 60s
+  - match:
+    - uri:
+        prefix: /api/monitoring
+    route:
+    - destination:
+        host: monitoring-service
+        port:
+          number: 3005
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /api/users
+    route:
+    - destination:
+        host: user-service
+        port:
+          number: 3006
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /api/marketplace
+    route:
+    - destination:
+        host: marketplace-service
+        port:
+          number: 3007
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /api/notifications
+    route:
+    - destination:
+        host: notification-service
+        port:
+          number: 3008
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /api/storage
+    route:
+    - destination:
+        host: storage-service
+        port:
+          number: 3009
+    timeout: 60s
+    retries:
+      attempts: 3
+      perTryTimeout: 20s
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: api-gateway-service
+        port:
+          number: 80
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s

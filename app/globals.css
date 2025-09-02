@@ -49,6 +49,7 @@ body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -89,6 +90,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -103,12 +105,128 @@ body {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
+
 .glass-dark {
   background: rgba(40, 40, 50, 0.25);
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-radius: 16px;
   border: 1px solid rgba(40, 40, 50, 0.18);
 }
+
 /* Use className="glass" or "glass-dark" for glassmorphism effect */
+
+/* Mobile-first responsive utilities */
+@layer utilities {
+  .mobile-grid {
+    @apply grid grid-cols-1 gap-4;
+  }
+  
+  .tablet-grid {
+    @apply md:grid-cols-2 md:gap-6;
+  }
+  
+  .desktop-grid {
+    @apply lg:grid-cols-3 lg:gap-8;
+  }
+  
+  .mobile-padding {
+    @apply px-4 py-2;
+  }
+  
+  .tablet-padding {
+    @apply md:px-6 md:py-4;
+  }
+  
+  .desktop-padding {
+    @apply lg:px-8 lg:py-6;
+  }
+  
+  .mobile-text {
+    @apply text-sm;
+  }
+  
+  .tablet-text {
+    @apply md:text-base;
+  }
+  
+  .desktop-text {
+    @apply lg:text-lg;
+  }
+  
+  .mobile-hidden {
+    @apply hidden md:block;
+  }
+  
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .responsive-card {
+    @apply p-4 md:p-6 lg:p-8 rounded-lg md:rounded-xl lg:rounded-2xl;
+  }
+  
+  .responsive-button {
+    @apply px-3 py-2 text-sm md:px-4 md:py-2 md:text-base lg:px-6 lg:py-3 lg:text-lg;
+  }
+  
+  .responsive-input {
+    @apply px-3 py-2 text-sm md:px-4 md:py-3 md:text-base;
+  }
+  
+  .responsive-modal {
+    @apply w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl;
+  }
+  
+  .responsive-sidebar {
+    @apply w-full md:w-64 lg:w-72 xl:w-80;
+  }
+  
+  .responsive-canvas {
+    @apply h-64 md:h-80 lg:h-96 xl:h-[32rem];
+  }
+  
+  .responsive-chart {
+    @apply h-48 md:h-56 lg:h-64 xl:h-72;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:shadow-lg:hover {
+    box-shadow: none;
+  }
+  
+  button, .cursor-pointer {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .glass, .glass-dark {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none;
+  }
+  
+  .transition-all,
+  .transition-colors,
+  .transition-transform {
+    transition: none;
+  }
+}

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-orchestrator
+  labels:
+    name: ai-orchestrator
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-orchestrator-system
+  labels:
+    name: ai-orchestrator-system
+    istio-injection: enabled

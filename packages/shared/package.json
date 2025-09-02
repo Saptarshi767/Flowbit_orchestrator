@@ -1,0 +1,15 @@
+{
+  "name": "@robust-ai-orchestrator/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for the robust AI orchestrator",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist src/**/*.js src/**/*.d.ts src/**/*.js.map src/**/*.d.ts.map"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,86 @@
+# Development Environment Configuration Example
+# Copy this file to terraform.tfvars and update the values
+
+# GCP Configuration (Required)
+gcp_project_id = "your-gcp-project-id"
+gcp_billing_account_id = "your-billing-account-id"
+
+# Database Configuration (Required)
+database_password = "your-secure-database-password"
+redis_auth_token = "your-secure-redis-auth-token"
+
+# AWS Configuration (Optional - defaults provided)
+aws_region = "us-west-2"
+aws_availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+aws_monthly_budget_limit = "500"
+
+# Azure Configuration (Optional - defaults provided)
+azure_location = "East US"
+azure_monthly_budget_limit = 500
+
+# GCP Configuration (Optional - defaults provided)
+gcp_region = "us-central1"
+gcp_monthly_budget_limit = 500
+
+# Feature Flags
+enable_cross_cloud_networking = false  # Set to true for production
+enable_data_replication = false        # Set to true for production
+enable_disaster_recovery = true
+enable_cost_optimization = true
+enable_spot_instances = false          # Set to true for cost savings
+
+# Cost Optimization
+budget_notification_emails = ["admin@yourcompany.com"]
+cost_anomaly_notification_email = "admin@yourcompany.com"
+cost_anomaly_threshold = 100
+
+# Slack Integration (Optional)
+slack_webhook_url = "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+slack_channel_name = "infrastructure-alerts"
+
+# Monitoring
+monitoring_notification_endpoints = ["admin@yourcompany.com"]
+
+# Resource Optimization
+enable_resource_optimization = true
+optimization_schedule = "0 2 * * *"  # Daily at 2 AM
+idle_resource_threshold_days = 7
+
+# Reserved Instances
+enable_reserved_instance_recommendations = true
+reserved_instance_payment_option = "Partial Upfront"
+reserved_instance_term = 1
+
+# Auto Scaling Thresholds
+cpu_scale_up_threshold = 70
+cpu_scale_down_threshold = 30
+
+# Backup and Retention
+backup_retention_days = 30
+log_retention_days = 30
+db_backup_retention_period = 7
+
+# Development-specific overrides
+kubernetes_version = "1.28"
+node_disk_size = 50
+
+# AWS Development Settings
+aws_node_desired_size = 2
+aws_node_max_size = 5
+aws_node_min_size = 1
+aws_db_instance_class = "db.t3.micro"
+aws_redis_node_type = "cache.t3.micro"
+
+# Azure Development Settings
+azure_node_count = 2
+azure_max_node_count = 5
+azure_min_node_count = 1
+azure_database_sku_name = "GP_Standard_D2s_v3"
+azure_redis_capacity = 1
+
+# GCP Development Settings
+gcp_node_count = 2
+gcp_max_node_count = 5
+gcp_min_node_count = 1
+gcp_database_tier = "db-f1-micro"
+gcp_redis_memory_size_gb = 1

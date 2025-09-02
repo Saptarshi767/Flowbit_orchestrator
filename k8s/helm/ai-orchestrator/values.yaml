@@ -1,0 +1,363 @@
+# Default values for ai-orchestrator
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Image configuration
+image:
+  registry: docker.io
+  repository: ai-orchestrator
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Service configuration
+services:
+  apiGateway:
+    enabled: true
+    replicas: 2
+    port: 3000
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  authService:
+    enabled: true
+    replicas: 2
+    port: 3001
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  orchestrationService:
+    enabled: true
+    replicas: 3
+    port: 3002
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 15
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  workflowService:
+    enabled: true
+    replicas: 2
+    port: 3003
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  executionService:
+    enabled: true
+    replicas: 3
+    port: 3004
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  monitoringService:
+    enabled: true
+    replicas: 2
+    port: 3005
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  userService:
+    enabled: true
+    replicas: 2
+    port: 3006
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  marketplaceService:
+    enabled: true
+    replicas: 2
+    port: 3007
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  notificationService:
+    enabled: true
+    replicas: 2
+    port: 3008
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  storageService:
+    enabled: true
+    replicas: 2
+    port: 3009
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: ""
+  postgres:
+    size: 10Gi
+    accessMode: ReadWriteOnce
+  redis:
+    size: 5Gi
+    accessMode: ReadWriteOnce
+  elasticsearch:
+    size: 20Gi
+    accessMode: ReadWriteOnce
+  fileStorage:
+    size: 50Gi
+    accessMode: ReadWriteMany
+
+# External dependencies
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "secure_password"
+    username: "ai_orchestrator"
+    password: "secure_password"
+    database: "ai_orchestrator"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+
+elasticsearch:
+  enabled: true
+  replicas: 1
+  minimumMasterNodes: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+  volumeClaimTemplate:
+    resources:
+      requests:
+        storage: 20Gi
+
+# Istio configuration
+istio:
+  enabled: true
+  gateway:
+    enabled: true
+    hosts:
+      - "*"
+    tls:
+      enabled: true
+      secretName: "ai-orchestrator-tls"
+  virtualService:
+    enabled: true
+  destinationRules:
+    enabled: true
+  securityPolicies:
+    enabled: true
+    mtls: STRICT
+
+# Configuration
+config:
+  # External Engine Configuration
+  engines:
+    langflow:
+      enabled: true
+      apiKey: "langflow_api_key"
+    n8n:
+      enabled: true
+      apiKey: "n8n_api_key"
+    langsmith:
+      enabled: true
+      apiKey: "langsmith_api_key"
+
+  # Security Configuration
+  security:
+    jwtSecret: "super_secret_jwt_key"
+    jwtExpiry: "24h"
+    sessionTimeout: "30m"
+    encryptionKey: "encryption_key_32_bytes"
+
+  # OAuth Configuration
+  oauth:
+    google:
+      clientId: "google_client_id"
+      clientSecret: "google_client_secret"
+    github:
+      clientId: "github_client_id"
+      clientSecret: "github_client_secret"
+
+  # SMTP Configuration
+  smtp:
+    host: "smtp.example.com"
+    user: "notifications@example.com"
+    password: "smtp_password"
+
+  # Rate Limiting
+  rateLimit:
+    requests: 1000
+    window: "15m"
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+  jaeger:
+    enabled: true
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: ai-orchestrator.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ai-orchestrator-tls
+      hosts:
+        - ai-orchestrator.local
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  fsGroup: 2000
+
+# Security Context
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Node Selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}

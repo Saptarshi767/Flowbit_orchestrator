@@ -1,0 +1,133 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: ai-orchestrator
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: api-gateway-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: auth-service-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: auth-service
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/ai-orchestrator/sa/default"]
+  - to:
+    - operation:
+        methods: ["GET", "POST"]
+        paths: ["/api/auth/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: orchestration-service-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: orchestration-service
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/ai-orchestrator/sa/default"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/orchestration/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: workflow-service-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: workflow-service
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/ai-orchestrator/sa/default"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/workflows/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: execution-service-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: execution-service
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/ai-orchestrator/sa/default"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/executions/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: database-access-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  rules:
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/ai-orchestrator/sa/default"
+  - to:
+    - operation:
+        ports: ["5432"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: redis-access-authz
+  namespace: ai-orchestrator
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  rules:
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/ai-orchestrator/sa/default"
+  - to:
+    - operation:
+        ports: ["6379"]

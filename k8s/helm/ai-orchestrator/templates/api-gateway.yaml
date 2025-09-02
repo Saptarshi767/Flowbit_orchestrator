@@ -1,0 +1,134 @@
+{{- if .Values.services.apiGateway.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ai-orchestrator.fullname" . }}-api-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ai-orchestrator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+spec:
+  replicas: {{ .Values.services.apiGateway.replicas }}
+  selector:
+    matchLabels:
+      {{- include "ai-orchestrator.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api-gateway
+  template:
+    metadata:
+      labels:
+        {{- include "ai-orchestrator.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api-gateway
+        version: v1
+    spec:
+      serviceAccountName: {{ include "ai-orchestrator.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: api-gateway
+        image: {{ include "ai-orchestrator.serviceImage" (dict "Values" .Values "service" "api-gateway") }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.services.apiGateway.port }}
+          protocol: TCP
+        env:
+        - name: PORT
+          value: {{ .Values.services.apiGateway.port | quote }}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ai-orchestrator.fullname" . }}-secrets
+              key: JWT_SECRET
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ai-orchestrator.fullname" . }}-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "ai-orchestrator.fullname" . }}-config
+              key: REDIS_PORT
+        resources:
+          {{- toYaml .Values.services.apiGateway.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ai-orchestrator.fullname" . }}-api-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ai-orchestrator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "ai-orchestrator.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+---
+{{- if .Values.services.apiGateway.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "ai-orchestrator.fullname" . }}-api-gateway-hpa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ai-orchestrator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-gateway
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "ai-orchestrator.fullname" . }}-api-gateway
+  minReplicas: {{ .Values.services.apiGateway.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.services.apiGateway.autoscaling.maxReplicas }}
+  metrics:
+  {{- if .Values.services.apiGateway.autoscaling.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.services.apiGateway.autoscaling.targetCPUUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.services.apiGateway.autoscaling.targetMemoryUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.services.apiGateway.autoscaling.targetMemoryUtilizationPercentage }}
+  {{- end }}
+{{- end }}
+{{- end }}

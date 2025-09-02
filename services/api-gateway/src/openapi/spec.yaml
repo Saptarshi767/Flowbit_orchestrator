@@ -1,0 +1,2025 @@
+openapi: 3.0.3
+info:
+  title: Robust AI Orchestrator API
+  description: |
+    Enterprise-grade AI orchestration platform supporting multiple workflow engines (Langflow, N8N, LangSmith).
+    
+    This API provides comprehensive access to workflow management, execution, monitoring, and collaboration features.
+    
+    ## Authentication
+    
+    The API supports multiple authentication methods:
+    - **Bearer Token**: JWT tokens for user authentication
+    - **API Key**: Service-to-service authentication
+    - **OAuth 2.0**: Third-party integrations
+    
+    ## Rate Limiting
+    
+    API requests are rate limited based on your subscription plan:
+    - **Free**: 100 requests per hour
+    - **Pro**: 1,000 requests per hour  
+    - **Enterprise**: 10,000 requests per hour
+    
+    ## Versioning
+    
+    The API uses URL versioning (e.g., `/api/v1/`). We maintain backward compatibility for at least 12 months after introducing breaking changes.
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://docs.robust-ai-orchestrator.com
+    email: api-support@robust-ai-orchestrator.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://robust-ai-orchestrator.com/terms
+
+servers:
+  - url: https://api.robust-ai-orchestrator.com/api/v1
+    description: Production server
+  - url: https://staging-api.robust-ai-orchestrator.com/api/v1
+    description: Staging server
+  - url: http://localhost:3001/api/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - OAuth2: [read, write, admin]
+
+paths:
+  # Health and System Endpoints
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Returns the health status of the API
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                success: true
+                data:
+                  status: healthy
+                  timestamp: "2024-01-15T10:30:00Z"
+                  version: "1.0.0"
+                  uptime: 3600
+                meta:
+                  correlationId: "req-123"
+                  timestamp: "2024-01-15T10:30:00Z"
+                  version: "1.0.0"
+
+  /version:
+    get:
+      tags: [System]
+      summary: API version information
+      description: Returns version information about the API
+      operationId: getVersion
+      security: []
+      responses:
+        '200':
+          description: Version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionResponse'
+
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      description: Authenticate user with email and password
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "user@example.com"
+              password: "securepassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: User registration
+      description: Register a new user account
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      description: Refresh an expired access token using a refresh token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: User logout
+      description: Logout user and invalidate tokens
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # User Management Endpoints
+  /users/profile:
+    get:
+      tags: [Users]
+      summary: Get user profile
+      description: Retrieve the current user's profile information
+      operationId: getUserProfile
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [Users]
+      summary: Update user profile
+      description: Update the current user's profile information
+      operationId: updateUserProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      description: Retrieve a list of users (admin only)
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: role
+          in: query
+          description: Filter by user role
+          schema:
+            type: string
+            enum: [admin, user, viewer]
+        - name: organizationId
+          in: query
+          description: Filter by organization ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Workflow Management Endpoints
+  /workflows:
+    get:
+      tags: [Workflows]
+      summary: List workflows
+      description: Retrieve a list of workflows accessible to the user
+      operationId: listWorkflows
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: engineType
+          in: query
+          description: Filter by workflow engine type
+          schema:
+            $ref: '#/components/schemas/EngineType'
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search workflows by name or description
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflows retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Workflows]
+      summary: Create workflow
+      description: Create a new workflow
+      operationId: createWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowRequest'
+      responses:
+        '201':
+          description: Workflow created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /workflows/{workflowId}:
+    get:
+      tags: [Workflows]
+      summary: Get workflow
+      description: Retrieve a specific workflow by ID
+      operationId: getWorkflow
+      parameters:
+        - $ref: '#/components/parameters/WorkflowIdParam'
+      responses:
+        '200':
+          description: Workflow retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Workflows]
+      summary: Update workflow
+      description: Update an existing workflow
+      operationId: updateWorkflow
+      parameters:
+        - $ref: '#/components/parameters/WorkflowIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkflowRequest'
+      responses:
+        '200':
+          description: Workflow updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      tags: [Workflows]
+      summary: Delete workflow
+      description: Delete a workflow
+      operationId: deleteWorkflow
+      parameters:
+        - $ref: '#/components/parameters/WorkflowIdParam'
+      responses:
+        '204':
+          description: Workflow deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /workflows/{workflowId}/versions:
+    get:
+      tags: [Workflows]
+      summary: List workflow versions
+      description: Retrieve all versions of a workflow
+      operationId: listWorkflowVersions
+      parameters:
+        - $ref: '#/components/parameters/WorkflowIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Workflow versions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowVersionsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Execution Endpoints
+  /executions:
+    get:
+      tags: [Executions]
+      summary: List executions
+      description: Retrieve a list of workflow executions
+      operationId: listExecutions
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: workflowId
+          in: query
+          description: Filter by workflow ID
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Filter by execution status
+          schema:
+            $ref: '#/components/schemas/ExecutionStatus'
+        - name: startDate
+          in: query
+          description: Filter executions started after this date
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          description: Filter executions started before this date
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Executions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Executions]
+      summary: Execute workflow
+      description: Start a new workflow execution
+      operationId: executeWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteWorkflowRequest'
+      responses:
+        '201':
+          description: Execution started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /executions/{executionId}:
+    get:
+      tags: [Executions]
+      summary: Get execution
+      description: Retrieve a specific execution by ID
+      operationId: getExecution
+      parameters:
+        - $ref: '#/components/parameters/ExecutionIdParam'
+      responses:
+        '200':
+          description: Execution retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Executions]
+      summary: Cancel execution
+      description: Cancel a running execution
+      operationId: cancelExecution
+      parameters:
+        - $ref: '#/components/parameters/ExecutionIdParam'
+      responses:
+        '200':
+          description: Execution cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /executions/{executionId}/logs:
+    get:
+      tags: [Executions]
+      summary: Get execution logs
+      description: Retrieve logs for a specific execution
+      operationId: getExecutionLogs
+      parameters:
+        - $ref: '#/components/parameters/ExecutionIdParam'
+        - name: level
+          in: query
+          description: Filter by log level
+          schema:
+            type: string
+            enum: [debug, info, warn, error]
+        - name: startTime
+          in: query
+          description: Filter logs after this timestamp
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          description: Filter logs before this timestamp
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Execution logs retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionLogsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Monitoring Endpoints
+  /monitoring/metrics:
+    get:
+      tags: [Monitoring]
+      summary: Get system metrics
+      description: Retrieve system performance metrics
+      operationId: getSystemMetrics
+      parameters:
+        - name: timeRange
+          in: query
+          description: Time range for metrics
+          schema:
+            type: string
+            enum: [1h, 6h, 24h, 7d, 30d]
+            default: 1h
+        - name: metrics
+          in: query
+          description: Specific metrics to retrieve (comma-separated)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /monitoring/alerts:
+    get:
+      tags: [Monitoring]
+      summary: List alerts
+      description: Retrieve active alerts
+      operationId: listAlerts
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: severity
+          in: query
+          description: Filter by alert severity
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: status
+          in: query
+          description: Filter by alert status
+          schema:
+            type: string
+            enum: [active, resolved, acknowledged]
+      responses:
+        '200':
+          description: Alerts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Marketplace Endpoints
+  /marketplace/workflows:
+    get:
+      tags: [Marketplace]
+      summary: Browse marketplace workflows
+      description: Browse public workflows in the marketplace
+      operationId: browseMarketplaceWorkflows
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search workflows
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Sort criteria
+          schema:
+            type: string
+            enum: [popularity, rating, recent, name]
+            default: popularity
+      responses:
+        '200':
+          description: Marketplace workflows retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceWorkflowsResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service authentication
+    
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.robust-ai-orchestrator.com/oauth/authorize
+          tokenUrl: https://api.robust-ai-orchestrator.com/oauth/token
+          scopes:
+            read: Read access to resources
+            write: Write access to resources
+            admin: Administrative access
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    
+    SortParam:
+      name: sort
+      in: query
+      description: Sort field and direction (e.g., 'name:asc', 'createdAt:desc')
+      schema:
+        type: string
+        pattern: '^[a-zA-Z_][a-zA-Z0-9_]*:(asc|desc)$'
+        default: 'createdAt:desc'
+    
+    WorkflowIdParam:
+      name: workflowId
+      in: path
+      required: true
+      description: Workflow ID
+      schema:
+        type: string
+        format: uuid
+    
+    ExecutionIdParam:
+      name: executionId
+      in: path
+      required: true
+      description: Execution ID
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # Common Schemas
+    ApiResponse:
+      type: object
+      required: [success, meta]
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+        data:
+          type: object
+          description: Response data (present on success)
+        error:
+          $ref: '#/components/schemas/ApiError'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    ResponseMeta:
+      type: object
+      required: [correlationId, timestamp, version]
+      properties:
+        correlationId:
+          type: string
+          description: Unique request correlation ID
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+        version:
+          type: string
+          description: API version
+        pagination:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    PaginationMeta:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        field:
+          type: string
+          description: Field name for validation errors
+
+    SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                message:
+                  type: string
+
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          description: User password
+
+    LoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [accessToken, refreshToken, user]
+              properties:
+                accessToken:
+                  type: string
+                  description: JWT access token
+                refreshToken:
+                  type: string
+                  description: Refresh token
+                expiresIn:
+                  type: integer
+                  description: Token expiration time in seconds
+                user:
+                  $ref: '#/components/schemas/User'
+
+    RegisterRequest:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        organizationName:
+          type: string
+          maxLength: 100
+
+    RegisterResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [user, message]
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+                message:
+                  type: string
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    TokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [accessToken, expiresIn]
+              properties:
+                accessToken:
+                  type: string
+                expiresIn:
+                  type: integer
+
+    # User Schemas
+    User:
+      type: object
+      required: [id, email, name, role, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        organizationId:
+          type: string
+          format: uuid
+        permissions:
+          type: array
+          items:
+            type: string
+        preferences:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+
+    UserRole:
+      type: string
+      enum: [admin, user, viewer]
+
+    UserProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/User'
+
+    UpdateUserProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        preferences:
+          type: object
+
+    UsersListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [users]
+              properties:
+                users:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+
+    # Workflow Schemas
+    EngineType:
+      type: string
+      enum: [langflow, n8n, langsmith]
+
+    Workflow:
+      type: object
+      required: [id, name, engineType, version, createdBy, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        engineType:
+          $ref: '#/components/schemas/EngineType'
+        definition:
+          type: object
+          description: Engine-specific workflow definition
+        version:
+          type: integer
+          minimum: 1
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+        organizationId:
+          type: string
+          format: uuid
+
+    CreateWorkflowRequest:
+      type: object
+      required: [name, engineType, definition]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        engineType:
+          $ref: '#/components/schemas/EngineType'
+        definition:
+          type: object
+        tags:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+          default: false
+
+    UpdateWorkflowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        definition:
+          type: object
+        tags:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+
+    WorkflowResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Workflow'
+
+    WorkflowsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [workflows]
+              properties:
+                workflows:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Workflow'
+
+    WorkflowVersion:
+      type: object
+      required: [id, workflowId, version, createdBy, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        definition:
+          type: object
+        changeLog:
+          type: string
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    WorkflowVersionsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [versions]
+              properties:
+                versions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WorkflowVersion'
+
+    # Execution Schemas
+    ExecutionStatus:
+      type: string
+      enum: [pending, running, completed, failed, cancelled]
+
+    Execution:
+      type: object
+      required: [id, workflowId, status, startTime, userId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowId:
+          type: string
+          format: uuid
+        workflowVersion:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        parameters:
+          type: object
+        result:
+          type: object
+        metrics:
+          type: object
+        executorId:
+          type: string
+        userId:
+          type: string
+          format: uuid
+
+    ExecuteWorkflowRequest:
+      type: object
+      required: [workflowId]
+      properties:
+        workflowId:
+          type: string
+          format: uuid
+        parameters:
+          type: object
+          description: Input parameters for the workflow
+        version:
+          type: integer
+          minimum: 1
+          description: Specific version to execute (defaults to latest)
+
+    ExecutionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Execution'
+
+    ExecutionsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [executions]
+              properties:
+                executions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Execution'
+
+    ExecutionLog:
+      type: object
+      required: [timestamp, level, message]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          type: string
+          enum: [debug, info, warn, error]
+        message:
+          type: string
+        metadata:
+          type: object
+
+    ExecutionLogsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [logs]
+              properties:
+                logs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExecutionLog'
+
+    # Monitoring Schemas
+    MetricDataPoint:
+      type: object
+      required: [timestamp, value]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        value:
+          type: number
+
+    Metric:
+      type: object
+      required: [name, dataPoints]
+      properties:
+        name:
+          type: string
+        unit:
+          type: string
+        dataPoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricDataPoint'
+
+    MetricsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [metrics]
+              properties:
+                metrics:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Metric'
+
+    Alert:
+      type: object
+      required: [id, title, severity, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [active, resolved, acknowledged]
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+
+    AlertsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [alerts]
+              properties:
+                alerts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Alert'
+
+    # Marketplace Schemas
+    MarketplaceWorkflow:
+      type: object
+      required: [id, name, description, author, rating, downloads]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        author:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          minimum: 0
+          maximum: 5
+        downloads:
+          type: integer
+          minimum: 0
+        price:
+          type: number
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+
+    MarketplaceWorkflowsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [workflows]
+              properties:
+                workflows:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MarketplaceWorkflow'
+
+    # Health and Version Schemas
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [status, timestamp, version, uptime]
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, degraded, unhealthy]
+                timestamp:
+                  type: string
+                  format: date-time
+                version:
+                  type: string
+                uptime:
+                  type: number
+
+    VersionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [version, apiVersion, buildDate]
+              properties:
+                version:
+                  type: string
+                apiVersion:
+                  type: string
+                buildDate:
+                  type: string
+                  format: date-time
+
+  responses:
+    # Standard Error Responses
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "BAD_REQUEST"
+              message: "Invalid request parameters"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication required"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "FORBIDDEN"
+              message: "Insufficient permissions"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "NOT_FOUND"
+              message: "Resource not found"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "CONFLICT"
+              message: "Resource already exists"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"
+
+    ValidationError:
+      description: Validation Error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Invalid input data"
+              details:
+                field: "email"
+                message: "Invalid email format"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+          example:
+            success: false
+            error:
+              code: "INTERNAL_SERVER_ERROR"
+              message: "An unexpected error occurred"
+            meta:
+              correlationId: "req-123"
+              timestamp: "2024-01-15T10:30:00Z"
+              version: "1.0.0"ef: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Workflow'
+
+    WorkflowsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [workflows]
+              properties:
+                workflows:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Workflow'
+
+    WorkflowVersion:
+      type: object
+      required: [id, workflowId, version, definition, createdBy, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        definition:
+          type: object
+        changeLog:
+          type: string
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    WorkflowVersionsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [versions]
+              properties:
+                versions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WorkflowVersion'
+
+    # Execution Schemas
+    ExecutionStatus:
+      type: string
+      enum: [pending, running, completed, failed, cancelled]
+
+    Execution:
+      type: object
+      required: [id, workflowId, status, startTime, userId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowId:
+          type: string
+          format: uuid
+        workflowVersion:
+          type: integer
+          minimum: 1
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        parameters:
+          type: object
+        result:
+          type: object
+        error:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        executorId:
+          type: string
+
+    ExecuteWorkflowRequest:
+      type: object
+      required: [workflowId]
+      properties:
+        workflowId:
+          type: string
+          format: uuid
+        parameters:
+          type: object
+          description: Input parameters for the workflow
+        version:
+          type: integer
+          minimum: 1
+          description: Specific version to execute (defaults to latest)
+
+    ExecutionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Execution'
+
+    ExecutionsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [executions]
+              properties:
+                executions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Execution'
+
+    ExecutionLog:
+      type: object
+      required: [timestamp, level, message]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          type: string
+          enum: [debug, info, warn, error]
+        message:
+          type: string
+        metadata:
+          type: object
+
+    ExecutionLogsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [logs]
+              properties:
+                logs:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ExecutionLog'
+
+    # System Schemas
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [status, timestamp, version, uptime]
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, degraded, unhealthy]
+                timestamp:
+                  type: string
+                  format: date-time
+                version:
+                  type: string
+                uptime:
+                  type: number
+
+    VersionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [version, apiVersion]
+              properties:
+                version:
+                  type: string
+                apiVersion:
+                  type: string
+                buildDate:
+                  type: string
+                  format: date-time
+
+    # Monitoring Schemas
+    MetricsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [metrics, timeRange]
+              properties:
+                metrics:
+                  type: object
+                timeRange:
+                  type: string
+                timestamp:
+                  type: string
+                  format: date-time
+
+    Alert:
+      type: object
+      required: [id, title, severity, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [active, resolved, acknowledged]
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+
+    AlertsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [alerts]
+              properties:
+                alerts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Alert'
+
+    # Marketplace Schemas
+    MarketplaceWorkflow:
+      type: object
+      required: [id, name, description, author, rating, downloads]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        author:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          minimum: 0
+          maximum: 5
+        downloads:
+          type: integer
+          minimum: 0
+        price:
+          type: number
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+
+    MarketplaceWorkflowsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [workflows]
+              properties:
+                workflows:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MarketplaceWorkflow'
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/ApiError'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: UNAUTHORIZED
+                      message:
+                        type: string
+                        example: Authentication required
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: FORBIDDEN
+                      message:
+                        type: string
+                        example: Insufficient permissions
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: NOT_FOUND
+                      message:
+                        type: string
+                        example: Resource not found
+
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: CONFLICT
+                      message:
+                        type: string
+                        example: Resource already exists
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: VALIDATION_ERROR
+                      message:
+                        type: string
+                        example: Validation failed
+                      details:
+                        type: object
+                        example:
+                          field: email
+                          message: Invalid email format
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: RATE_LIMIT_EXCEEDED
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Request limit per time window
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: Time when rate limit resets
+          schema:
+            type: integer
+
+tags:
+  - name: System
+    description: System health and information endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User management operations
+  - name: Workflows
+    description: Workflow management and versioning
+  - name: Executions
+    description: Workflow execution and monitoring
+  - name: Monitoring
+    description: System monitoring and alerting
+  - name: Marketplace
+    description: Workflow marketplace and sharing

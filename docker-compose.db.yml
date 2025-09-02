@@ -1,0 +1,222 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: orchestrator-postgres
+    environment:
+      POSTGRES_DB: orchestrator
+      POSTGRES_USER: orchestrator
+      POSTGRES_PASSWORD: orchestrator_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./lib/database/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - orchestrator-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orchestrator -d orchestrator"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # PostgreSQL Test Database
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: orchestrator-postgres-test
+    environment:
+      POSTGRES_DB: orchestrator_test
+      POSTGRES_USER: orchestrator
+      POSTGRES_PASSWORD: orchestrator_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - orchestrator-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orchestrator -d orchestrator_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: orchestrator-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./lib/database/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - orchestrator-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Test Instance
+  redis-test:
+    image: redis:7-alpine
+    container_name: orchestrator-redis-test
+    command: redis-server --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    networks:
+      - orchestrator-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: orchestrator-elasticsearch
+    environment:
+      - node.name=orchestrator-es
+      - cluster.name=orchestrator-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - orchestrator-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Elasticsearch Test Instance
+  elasticsearch-test:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: orchestrator-elasticsearch-test
+    environment:
+      - node.name=orchestrator-es-test
+      - cluster.name=orchestrator-test-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch_test_data:/usr/share/elasticsearch/data
+    networks:
+      - orchestrator-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Kibana (for Elasticsearch visualization)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: orchestrator-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=orchestrator-kibana
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "5601:5601"
+    networks:
+      - orchestrator-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Commander (Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: orchestrator-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - orchestrator-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # pgAdmin (PostgreSQL GUI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: orchestrator-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@orchestrator.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - orchestrator-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  postgres_test_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  elasticsearch_test_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  orchestrator-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

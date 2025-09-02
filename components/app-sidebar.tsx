@@ -116,6 +116,38 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/dashboard">
+                    <Workflow className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/marketplace">
+                    <Settings className="w-4 h-4" />
+                    <span>Marketplace</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/monitoring">
+                    <Settings className="w-4 h-4" />
+                    <span>Monitoring</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
           <SidebarGroupLabel className="flex items-center justify-between">
             <span>Workflows</span>
             <Button variant="ghost" size="sm" onClick={() => {}} className="h-6 w-6 p-0">

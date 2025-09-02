@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ai-orchestrator.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ai-orchestrator.labels" . | nindent 4 }}
+data:
+  # Database Configuration
+  {{- if .Values.postgresql.enabled }}
+  POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+  {{- else }}
+  POSTGRES_HOST: "postgres-service"
+  {{- end }}
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: {{ .Values.postgresql.auth.database | quote }}
+  
+  {{- if .Values.redis.enabled }}
+  REDIS_HOST: "{{ .Release.Name }}-redis-master"
+  {{- else }}
+  REDIS_HOST: "redis-service"
+  {{- end }}
+  REDIS_PORT: "6379"
+  
+  {{- if .Values.elasticsearch.enabled }}
+  ELASTICSEARCH_HOST: "{{ .Release.Name }}-elasticsearch-master"
+  {{- else }}
+  ELASTICSEARCH_HOST: "elasticsearch-service"
+  {{- end }}
+  ELASTICSEARCH_PORT: "9200"
+  
+  # Service Configuration
+  API_GATEWAY_PORT: {{ .Values.services.apiGateway.port | quote }}
+  AUTH_SERVICE_PORT: {{ .Values.services.authService.port | quote }}
+  ORCHESTRATION_SERVICE_PORT: {{ .Values.services.orchestrationService.port | quote }}
+  WORKFLOW_SERVICE_PORT: {{ .Values.services.workflowService.port | quote }}
+  EXECUTION_SERVICE_PORT: {{ .Values.services.executionService.port | quote }}
+  MONITORING_SERVICE_PORT: {{ .Values.services.monitoringService.port | quote }}
+  USER_SERVICE_PORT: {{ .Values.services.userService.port | quote }}
+  MARKETPLACE_SERVICE_PORT: {{ .Values.services.marketplaceService.port | quote }}
+  NOTIFICATION_SERVICE_PORT: {{ .Values.services.notificationService.port | quote }}
+  STORAGE_SERVICE_PORT: {{ .Values.services.storageService.port | quote }}
+  
+  # External Engine Configuration
+  LANGFLOW_ENABLED: {{ .Values.config.engines.langflow.enabled | quote }}
+  N8N_ENABLED: {{ .Values.config.engines.n8n.enabled | quote }}
+  LANGSMITH_ENABLED: {{ .Values.config.engines.langsmith.enabled | quote }}
+  
+  # Monitoring Configuration
+  PROMETHEUS_ENABLED: {{ .Values.monitoring.prometheus.enabled | quote }}
+  GRAFANA_ENABLED: {{ .Values.monitoring.grafana.enabled | quote }}
+  JAEGER_ENABLED: {{ .Values.monitoring.jaeger.enabled | quote }}
+  
+  # Security Configuration
+  JWT_EXPIRY: {{ .Values.config.security.jwtExpiry | quote }}
+  SESSION_TIMEOUT: {{ .Values.config.security.sessionTimeout | quote }}
+  RATE_LIMIT_REQUESTS: {{ .Values.config.rateLimit.requests | quote }}
+  RATE_LIMIT_WINDOW: {{ .Values.config.rateLimit.window | quote }}

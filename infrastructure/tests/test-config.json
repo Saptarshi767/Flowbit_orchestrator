@@ -1,0 +1,47 @@
+{
+  "aws": {
+    "region": "us-west-2",
+    "vpc_id": "vpc-12345678",
+    "eks_cluster_name": "dev-eks-cluster",
+    "rds_instance_id": "dev-postgresql",
+    "s3_bucket_name": "dev-orchestrator-storage-abcd1234"
+  },
+  "azure": {
+    "subscription_id": "12345678-1234-1234-1234-123456789012",
+    "resource_group_name": "dev-orchestrator-rg",
+    "aks_cluster_name": "dev-aks",
+    "location": "East US"
+  },
+  "gcp": {
+    "project_id": "my-project-id",
+    "location": "us-central1",
+    "cluster_name": "dev-gke",
+    "credentials_path": "/path/to/service-account.json"
+  },
+  "cross_cloud": {
+    "aws_to_azure_enabled": true,
+    "aws_to_gcp_enabled": true,
+    "azure_to_gcp_enabled": false
+  },
+  "cost_optimization": {
+    "budgets_enabled": true,
+    "auto_scaling_enabled": true,
+    "spot_instances_enabled": false
+  },
+  "disaster_recovery": {
+    "backup_enabled": true,
+    "cross_region_replication": true,
+    "retention_days": 30
+  },
+  "monitoring": {
+    "cloudwatch_enabled": true,
+    "azure_monitor_enabled": true,
+    "stackdriver_enabled": true
+  },
+  "security": {
+    "encryption_at_rest": true,
+    "encryption_in_transit": true,
+    "network_security_groups": true,
+    "iam_roles_configured": true
+  }
+}

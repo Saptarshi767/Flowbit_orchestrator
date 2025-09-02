@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: ai-orchestrator
+  labels:
+    app: auth-service
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-service
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        version: v1
+    spec:
+      containers:
+      - name: auth-service
+        image: ai-orchestrator/auth-service:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: AUTH_SERVICE_PORT
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: ai-orchestrator-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: POSTGRES_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: JWT_SECRET
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: GOOGLE_CLIENT_ID
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: GOOGLE_CLIENT_SECRET
+        - name: GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: GITHUB_CLIENT_ID
+        - name: GITHUB_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-orchestrator-secrets
+              key: GITHUB_CLIENT_SECRET
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: ai-orchestrator
+  labels:
+    app: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+  - port: 3001
+    targetPort: 3001
+    name: http
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service-hpa
+  namespace: ai-orchestrator
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

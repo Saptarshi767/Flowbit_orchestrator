@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-orchestrator-config
+  namespace: ai-orchestrator
+data:
+  # Database Configuration
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "ai_orchestrator"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  ELASTICSEARCH_HOST: "elasticsearch-service"
+  ELASTICSEARCH_PORT: "9200"
+  
+  # Service Configuration
+  API_GATEWAY_PORT: "3000"
+  AUTH_SERVICE_PORT: "3001"
+  ORCHESTRATION_SERVICE_PORT: "3002"
+  WORKFLOW_SERVICE_PORT: "3003"
+  EXECUTION_SERVICE_PORT: "3004"
+  MONITORING_SERVICE_PORT: "3005"
+  USER_SERVICE_PORT: "3006"
+  MARKETPLACE_SERVICE_PORT: "3007"
+  NOTIFICATION_SERVICE_PORT: "3008"
+  STORAGE_SERVICE_PORT: "3009"
+  
+  # External Engine Configuration
+  LANGFLOW_ENABLED: "true"
+  N8N_ENABLED: "true"
+  LANGSMITH_ENABLED: "true"
+  
+  # Monitoring Configuration
+  PROMETHEUS_ENABLED: "true"
+  GRAFANA_ENABLED: "true"
+  JAEGER_ENABLED: "true"
+  
+  # Security Configuration
+  JWT_EXPIRY: "24h"
+  SESSION_TIMEOUT: "30m"
+  RATE_LIMIT_REQUESTS: "1000"
+  RATE_LIMIT_WINDOW: "15m"

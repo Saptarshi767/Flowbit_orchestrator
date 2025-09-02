@@ -10,15 +10,93 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum UserRole {
+  ADMIN
+  MANAGER
+  DEVELOPER
+  VIEWER
+}
+
+enum SubscriptionPlan {
+  FREE
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum EngineType {
+  LANGFLOW
+  N8N
+  LANGSMITH
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowVisibility {
+  PRIVATE
+  ORGANIZATION
+  PUBLIC
+}
+
+enum NotificationChannel {
+  EMAIL
+  SLACK
+  WEBHOOK
+  IN_APP
+}
+
+// Core Models
+
+model Organization {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  plan        SubscriptionPlan @default(FREE)
+  settings    Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Relations
+  users       User[]
+  workflows   Workflow[]
+  executions  Execution[]
+  
+  @@map("organizations")
+}
+
 model User {
-  id            String   @id @default(cuid())
-  name          String?
-  email         String?  @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  accounts      Account[]
-  sessions      Session[]
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?
+  role           UserRole  @default(DEVELOPER)
+  organizationId String
+  permissions    Json?
+  preferences    Json?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accounts       Account[]
+  sessions       Session[]
+  workflows      Workflow[]
+  executions     Execution[]
+  collaborations WorkflowCollaborator[]
+  marketplaceItems MarketplaceItem[]
+  ratings        WorkflowRating[]
+  notifications  Notification[]
+  
+  @@map("users")
 }
 
 model Account {
@@ -37,6 +115,7 @@ model Account {
   user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@map("accounts")
 }
 
 model Session {
@@ -45,12 +124,195 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
 }
 
 model VerificationToken {
   identifier String
   token      String   @unique
-  expires   DateTime
+  expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Workflow {
+  id             String             @id @default(cuid())
+  name           String
+  description    String?
+  engineType     EngineType
+  definition     Json
+  version        Int                @default(1)
+  visibility     WorkflowVisibility @default(PRIVATE)
+  tags           String[]
+  createdBy      String
+  organizationId String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  
+  // Relations
+  creator        User               @relation(fields: [createdBy], references: [id])
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions       WorkflowVersion[]
+  executions     Execution[]
+  collaborators  WorkflowCollaborator[]
+  marketplaceItem MarketplaceItem?
+  ratings        WorkflowRating[]
+  
+  @@index([engineType])
+  @@index([visibility])
+  @@index([organizationId])
+  @@index([createdBy])
+  @@map("workflows")
+}
+
+model WorkflowVersion {
+  id         String   @id @default(cuid())
+  workflowId String
+  version    Int
+  definition Json
+  changeLog  String?
+  createdBy  String
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  @@unique([workflowId, version])
+  @@map("workflow_versions")
+}
+
+model WorkflowCollaborator {
+  id         String   @id @default(cuid())
+  workflowId String
+  userId     String
+  role       String   // owner, editor, viewer
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([workflowId, userId])
+  @@map("workflow_collaborators")
+}
+
+model Execution {
+  id              String          @id @default(cuid())
+  workflowId      String
+  workflowVersion Int
+  status          ExecutionStatus @default(PENDING)
+  parameters      Json?
+  result          Json?
+  logs            Json?
+  metrics         Json?
+  startTime       DateTime        @default(now())
+  endTime         DateTime?
+  executorId      String?
+  userId          String
+  organizationId  String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  workflow       Workflow     @relation(fields: [workflowId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([workflowId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([startTime])
+  @@map("executions")
+}
+
+model MarketplaceItem {
+  id          String   @id @default(cuid())
+  workflowId  String   @unique
+  title       String
+  description String
+  category    String
+  price       Decimal? @db.Decimal(10, 2)
+  isPublic    Boolean  @default(true)
+  downloads   Int      @default(0)
+  rating      Float?   @default(0)
+  publishedBy String
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  workflow    Workflow         @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  publisher   User             @relation(fields: [publishedBy], references: [id])
+  ratings     WorkflowRating[]
+  
+  @@index([category])
+  @@index([isPublic])
+  @@index([rating])
+  @@map("marketplace_items")
+}
+
+model WorkflowRating {
+  id               String          @id @default(cuid())
+  workflowId       String
+  marketplaceItemId String?
+  userId           String
+  rating           Int             @db.SmallInt // 1-5
+  review           String?
+  createdAt        DateTime        @default(now())
+  
+  // Relations
+  workflow         Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  marketplaceItem  MarketplaceItem? @relation(fields: [marketplaceItemId], references: [id], onDelete: Cascade)
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([workflowId, userId])
+  @@map("workflow_ratings")
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  channel   NotificationChannel
+  data      Json?
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  
+  // Relations
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model SystemMetric {
+  id        String   @id @default(cuid())
+  name      String
+  value     Float
+  tags      Json?
+  timestamp DateTime @default(now())
+  
+  @@index([name, timestamp])
+  @@map("system_metrics")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String?
+  action       String
+  resource     String
+  resourceId   String?
+  details      Json?
+  ipAddress    String?
+  userAgent    String?
+  timestamp    DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@map("audit_logs")
 }

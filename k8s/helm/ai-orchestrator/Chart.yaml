@@ -1,0 +1,30 @@
+apiVersion: v2
+name: ai-orchestrator
+description: A Helm chart for AI Orchestrator platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - orchestration
+  - workflow
+  - microservices
+home: https://github.com/ai-orchestrator/platform
+sources:
+  - https://github.com/ai-orchestrator/platform
+maintainers:
+  - name: AI Orchestrator Team
+    email: team@ai-orchestrator.com
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: elasticsearch
+    version: "19.x.x"
+    repository: "https://helm.elastic.co"
+    condition: elasticsearch.enabled
