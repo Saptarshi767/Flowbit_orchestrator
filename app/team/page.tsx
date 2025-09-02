@@ -84,9 +84,9 @@ const roleConfig = {
 }
 
 const statusConfig = {
-  active: { color: "success", label: "Active" },
-  invited: { color: "warning", label: "Invited" },
-  inactive: { color: "secondary", label: "Inactive" }
+  active: { color: "success" as const, label: "Active" },
+  invited: { color: "warning" as const, label: "Invited" },
+  inactive: { color: "secondary" as const, label: "Inactive" }
 }
 
 export default function TeamPage() {
