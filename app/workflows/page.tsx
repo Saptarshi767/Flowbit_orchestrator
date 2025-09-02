@@ -17,7 +17,8 @@ import {
   MoreHorizontal,
   Users,
   Calendar,
-  Activity
+  Activity,
+  Workflow as WorkflowIcon
 } from "lucide-react"
 import { EngineType, Workflow } from "@/types/workflow"
 import { formatDistanceToNow } from "date-fns"
@@ -236,7 +237,7 @@ export default function WorkflowsPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <div className="text-gray-400 mb-4">
-                <Workflow className="w-12 h-12 mx-auto" />
+                <WorkflowIcon className="w-12 h-12 mx-auto" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 No workflows found
