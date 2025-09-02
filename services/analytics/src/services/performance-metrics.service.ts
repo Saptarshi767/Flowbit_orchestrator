@@ -143,6 +143,10 @@ export class PerformanceMetricsService {
     const result = await this.elasticsearchService.queryData(executionQuery);
     const aggs = result.aggregations;
 
+    if (!aggs) {
+      throw new Error('No aggregations returned from Elasticsearch query');
+    }
+
     // Calculate derived metrics
     const totalExecutions = aggs.total_executions.value || 0;
     const timeRangeHours = (timeRange.end.getTime() - timeRange.start.getTime()) / (1000 * 60 * 60);
@@ -245,6 +249,10 @@ export class PerformanceMetricsService {
       const result = await this.elasticsearchService.queryData(resourceQuery);
       const aggs = result.aggregations;
 
+      if (!aggs) {
+        throw new Error('No aggregations returned from resource utilization query');
+      }
+
       const avgCpu = aggs.avg_cpu.avg_value.value || 0;
       const avgMemory = aggs.avg_memory.avg_value.value || 0;
       const avgDisk = aggs.avg_disk.avg_value.value || 0;
@@ -328,6 +336,10 @@ export class PerformanceMetricsService {
 
     const result = await this.elasticsearchService.queryData(query);
     const aggs = result.aggregations;
+
+    if (!aggs) {
+      throw new Error('No aggregations returned from custom metric query');
+    }
 
     const current = aggs.current_avg.value || 0;
     const timeSeries = aggs.time_series.buckets.map((bucket: any) => ({

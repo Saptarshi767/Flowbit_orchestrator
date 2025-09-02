@@ -20,7 +20,7 @@ export class ElasticsearchPipelineService {
     this.client = new Client({
       node: config.node,
       auth: config.auth,
-      ssl: config.ssl,
+      tls: config.ssl,
       requestTimeout: config.requestTimeout || 30000,
       maxRetries: config.maxRetries || 3
     });
@@ -146,15 +146,13 @@ export class ElasticsearchPipelineService {
   private async createIndex(indexName: string, mapping: any): Promise<void> {
     await this.client.indices.create({
       index: indexName,
-      body: {
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0,
-          'index.lifecycle.name': 'orchestrator-policy',
-          'index.lifecycle.rollover_alias': `${indexName}-alias`
-        },
-        mappings: mapping
-      }
+      settings: {
+        number_of_shards: 1,
+        number_of_replicas: 0,
+        'index.lifecycle.name': 'orchestrator-policy',
+        'index.lifecycle.rollover_alias': `${indexName}-alias`
+      },
+      mappings: mapping
     });
   }
 
@@ -262,7 +260,11 @@ export class ElasticsearchPipelineService {
 
       return {
         hits: {
-          total: { value: response.hits.total?.value || 0 },
+          total: { 
+            value: typeof response.hits.total === 'number' 
+              ? response.hits.total 
+              : response.hits.total?.value || 0 
+          },
           hits: response.hits.hits.map(hit => ({
             _source: hit._source,
             _score: hit._score || 0
@@ -295,12 +297,10 @@ export class ElasticsearchPipelineService {
 
       await this.client.deleteByQuery({
         index: indexPattern,
-        body: {
-          query: {
-            range: {
-              timestamp: {
-                lt: cutoffDate
-              }
+        query: {
+          range: {
+            timestamp: {
+              lt: cutoffDate
             }
           }
         }

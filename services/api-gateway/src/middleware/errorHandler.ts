@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from '@robust-ai-orchestrator/shared';
+// Local type definition
+interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
 import { logError } from './logging';
 
 export interface AppError extends Error {
@@ -58,16 +64,8 @@ export const errorHandler = (
 
   const response: ApiResponse = {
     success: false,
-    error: {
-      code: errorCode,
-      message: message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    },
-    meta: {
-      correlationId: req.correlationId || '',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    }
+    error: `${errorCode}: ${message}`,
+    message: process.env.NODE_ENV === 'development' ? error.stack : message
   };
 
   res.status(statusCode).json(response);
@@ -77,15 +75,8 @@ export const errorHandler = (
 export const notFoundHandler = (req: Request, res: Response): void => {
   const response: ApiResponse = {
     success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: `Route ${req.method} ${req.url} not found`
-    },
-    meta: {
-      correlationId: req.correlationId || '',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    }
+    error: `NOT_FOUND: Route ${req.method} ${req.url} not found`,
+    message: `Route ${req.method} ${req.url} not found`
   };
 
   res.status(404).json(response);

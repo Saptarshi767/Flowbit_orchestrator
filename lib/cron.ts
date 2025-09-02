@@ -79,7 +79,7 @@ function runWorkflow(workflowId: string, input: any, userId?: string) {
 
   python.on('close', (code) => {
     if (code === 0) {
-      updateExecutionStatus(executionId, 'Success', output, null);
+      updateExecutionStatus(executionId, 'Success', output, undefined);
     } else {
       updateExecutionStatus(executionId, 'Failed', output, error || 'Unknown error');
     }

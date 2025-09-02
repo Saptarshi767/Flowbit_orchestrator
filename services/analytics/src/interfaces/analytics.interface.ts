@@ -1,4 +1,31 @@
-import { TimeRange, ReportFormat, ReportParameter, ReportType as SharedReportType } from '@robust-ai-orchestrator/shared';
+// Define shared types locally since the shared package doesn't exist
+export interface TimeRange {
+  start: Date;
+  end: Date;
+}
+
+export enum ReportFormat {
+  PDF = 'pdf',
+  CSV = 'csv',
+  JSON = 'json',
+  XLSX = 'xlsx',
+  HTML = 'html'
+}
+
+export interface ReportParameter {
+  name: string;
+  type: string;
+  required: boolean;
+  defaultValue?: any;
+  description?: string;
+}
+
+export interface SharedReportType {
+  id: string;
+  name: string;
+  description: string;
+  parameters: ReportParameter[];
+}
 
 export interface IAnalyticsService {
   // Data pipeline operations
@@ -62,6 +89,7 @@ export interface ElasticsearchQuery {
     filter?: any[];
   };
   match?: Record<string, any>;
+  match_all?: Record<string, any>;
   range?: Record<string, any>;
   term?: Record<string, any>;
   terms?: Record<string, any>;

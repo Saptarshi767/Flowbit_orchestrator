@@ -1,7 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
-import { JWTPayload, ApiResponse } from '@robust-ai-orchestrator/shared';
+// Local type definitions
+interface Permission {
+  resource: string
+  actions: string[]
+}
+
+interface JWTPayload {
+  userId: string
+  email: string
+  organizationId?: string
+  roles: string[]
+  permissions: Permission[]
+  iat?: number
+  exp?: number
+}
+
+interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
 
 // Extend Express Request interface to include user
 declare global {
@@ -20,15 +41,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   if (!token) {
     const response: ApiResponse = {
       success: false,
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Access token is required'
-      },
-      meta: {
-        correlationId: req.correlationId || '',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-      }
+      error: 'UNAUTHORIZED: Access token is required',
+      message: 'Authentication required'
     };
     res.status(401).json(response);
     return;
@@ -41,15 +55,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   } catch (error) {
     const response: ApiResponse = {
       success: false,
-      error: {
-        code: 'INVALID_TOKEN',
-        message: 'Invalid or expired token'
-      },
-      meta: {
-        correlationId: req.correlationId || '',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-      }
+      error: 'INVALID_TOKEN: Invalid or expired token',
+      message: 'Token validation failed'
     };
     res.status(403).json(response);
   }
@@ -60,36 +67,22 @@ export const authorizePermission = (resource: string, action: string) => {
     if (!req.user) {
       const response: ApiResponse = {
         success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'Authentication required'
-        },
-        meta: {
-          correlationId: req.correlationId || '',
-          timestamp: new Date().toISOString(),
-          version: '1.0.0'
-        }
+        error: 'UNAUTHORIZED: Authentication required',
+        message: 'User authentication failed'
       };
       res.status(401).json(response);
       return;
     }
 
     const hasPermission = req.user.permissions.some(
-      permission => permission.resource === resource && permission.actions.includes(action)
+      (permission: Permission) => permission.resource === resource && permission.actions.includes(action)
     );
 
     if (!hasPermission) {
       const response: ApiResponse = {
         success: false,
-        error: {
-          code: 'FORBIDDEN',
-          message: `Insufficient permissions for ${action} on ${resource}`
-        },
-        meta: {
-          correlationId: req.correlationId || '',
-          timestamp: new Date().toISOString(),
-          version: '1.0.0'
-        }
+        error: `FORBIDDEN: Insufficient permissions for ${action} on ${resource}`,
+        message: 'Access denied'
       };
       res.status(403).json(response);
       return;

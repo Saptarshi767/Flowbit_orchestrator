@@ -4,8 +4,16 @@ import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
+interface CronJob {
+  workflow: string;
+  cron: string;
+  input: {
+    text: string;
+  };
+}
+
 export default function CronEditor() {
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<CronJob[]>([]);
   const [cron, setCron] = useState("");
   const [workflow, setWorkflow] = useState("");
   const [input, setInput] = useState("");

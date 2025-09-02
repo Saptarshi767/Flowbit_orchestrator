@@ -3,7 +3,17 @@ import { v4 as uuidv4 } from 'uuid';
 import winston from 'winston';
 import expressWinston from 'express-winston';
 import { config } from '../config';
-import { LogContext } from '@robust-ai-orchestrator/shared';
+
+// Local type definition
+interface LogContext {
+  correlationId: string;
+  userId?: string;
+  organizationId?: string;
+  method?: string;
+  url?: string;
+  userAgent?: string;
+  ip?: string;
+}
 
 // Configure Winston logger
 export const logger = winston.createLogger({

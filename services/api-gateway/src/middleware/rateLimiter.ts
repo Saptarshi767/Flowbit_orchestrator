@@ -2,7 +2,14 @@ import rateLimit from 'express-rate-limit';
 import { createClient } from 'redis';
 import { Request, Response } from 'express';
 import { config } from '../config';
-import { ApiResponse } from '@robust-ai-orchestrator/shared';
+
+// Local type definition
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
 
 // Redis client for rate limiting
 let redisClient: ReturnType<typeof createClient> | null = null;
@@ -42,12 +49,12 @@ class RedisStore {
     
     const results = await pipeline.exec();
     
-    if (!results) {
+    if (!results || results.length < 3) {
       return { totalHits: 1 };
     }
 
-    const totalHits = results[0] as number;
-    const ttl = results[2] as number;
+    const totalHits = Number(results[0]) || 1;
+    const ttl = Number(results[2]) || 0;
     const timeToExpire = ttl > 0 ? ttl * 1000 : undefined;
 
     return { totalHits, timeToExpire };
@@ -96,15 +103,8 @@ export const createRateLimiter = (options?: Partial<typeof config.rateLimiting>)
     handler: (req: Request, res: Response) => {
       const response: ApiResponse = {
         success: false,
-        error: {
-          code: 'RATE_LIMIT_EXCEEDED',
-          message: 'Too many requests, please try again later'
-        },
-        meta: {
-          correlationId: req.correlationId || '',
-          timestamp: new Date().toISOString(),
-          version: '1.0.0'
-        }
+        error: 'RATE_LIMIT_EXCEEDED: Too many requests, please try again later',
+        message: 'Too many requests, please try again later'
       };
       res.status(429).json(response);
     }

@@ -118,7 +118,7 @@ export const getEnvironmentConfig = () => {
         }
       }
     
-    case 'testing':
+    case 'test':
       return {
         ...baseConfig,
         postgresql: {
@@ -155,10 +155,9 @@ export const CONNECTION_POOL_CONFIG = {
     createRetryIntervalMillis: 200
   },
   redis: {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null,
     retryDelayOnFailover: 100,
     enableReadyCheck: true,
-    maxRetriesPerRequest: null,
     lazyConnect: true
   }
 }

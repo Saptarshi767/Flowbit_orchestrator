@@ -1,5 +1,4 @@
 import { ElasticsearchConnection } from './connection'
-import { MappingProperty } from '@elastic/elasticsearch/lib/api/types'
 
 // Elasticsearch Index Mappings
 export const ELASTICSEARCH_INDICES = {
@@ -208,78 +207,88 @@ export class ElasticsearchSchemaManager {
   private client = ElasticsearchConnection.getInstance()
   
   async createIndices(): Promise<void> {
+    const workflowSettings = {
+      number_of_shards: 2,
+      number_of_replicas: 1,
+      analysis: {
+        analyzer: {
+          workflow_analyzer: {
+            type: 'custom' as const,
+            tokenizer: 'standard',
+            filter: ['lowercase', 'stop', 'snowball']
+          }
+        }
+      }
+    }
+
+    const executionSettings = {
+      number_of_shards: 3,
+      number_of_replicas: 1,
+      'index.lifecycle.name': 'execution_logs_policy',
+      'index.lifecycle.rollover_alias': 'executions'
+    }
+
+    const auditLogSettings = {
+      number_of_shards: 2,
+      number_of_replicas: 1,
+      'index.lifecycle.name': 'audit_logs_policy'
+    }
+
+    const systemMetricsSettings = {
+      number_of_shards: 1,
+      number_of_replicas: 1,
+      'index.lifecycle.name': 'metrics_policy'
+    }
+
+    const marketplaceSettings = {
+      number_of_shards: 1,
+      number_of_replicas: 1,
+      analysis: {
+        analyzer: {
+          marketplace_analyzer: {
+            type: 'custom' as const,
+            tokenizer: 'standard',
+            filter: ['lowercase', 'stop', 'synonym']
+          }
+        },
+        filter: {
+          synonym: {
+            type: 'synonym' as const,
+            synonyms: [
+              'ai,artificial intelligence,machine learning,ml',
+              'automation,workflow,process',
+              'integration,connector,api'
+            ]
+          }
+        }
+      }
+    }
+
     const indices = [
       {
         index: ELASTICSEARCH_INDICES.WORKFLOWS,
         mapping: workflowMapping,
-        settings: {
-          number_of_shards: 2,
-          number_of_replicas: 1,
-          analysis: {
-            analyzer: {
-              workflow_analyzer: {
-                type: 'custom',
-                tokenizer: 'standard',
-                filter: ['lowercase', 'stop', 'snowball']
-              }
-            }
-          }
-        }
+        settings: workflowSettings
       },
       {
         index: ELASTICSEARCH_INDICES.EXECUTIONS,
         mapping: executionMapping,
-        settings: {
-          number_of_shards: 3,
-          number_of_replicas: 1,
-          'index.lifecycle.name': 'execution_logs_policy',
-          'index.lifecycle.rollover_alias': 'executions'
-        }
+        settings: executionSettings
       },
       {
         index: ELASTICSEARCH_INDICES.AUDIT_LOGS,
         mapping: auditLogMapping,
-        settings: {
-          number_of_shards: 2,
-          number_of_replicas: 1,
-          'index.lifecycle.name': 'audit_logs_policy'
-        }
+        settings: auditLogSettings
       },
       {
         index: ELASTICSEARCH_INDICES.SYSTEM_METRICS,
         mapping: systemMetricsMapping,
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 1,
-          'index.lifecycle.name': 'metrics_policy'
-        }
+        settings: systemMetricsSettings
       },
       {
         index: ELASTICSEARCH_INDICES.MARKETPLACE,
         mapping: marketplaceMapping,
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 1,
-          analysis: {
-            analyzer: {
-              marketplace_analyzer: {
-                type: 'custom',
-                tokenizer: 'standard',
-                filter: ['lowercase', 'stop', 'synonym']
-              }
-            },
-            filter: {
-              synonym: {
-                type: 'synonym',
-                synonyms: [
-                  'ai,artificial intelligence,machine learning,ml',
-                  'automation,workflow,process',
-                  'integration,connector,api'
-                ]
-              }
-            }
-          }
-        }
+        settings: marketplaceSettings
       }
     ]
     
@@ -290,17 +299,15 @@ export class ElasticsearchSchemaManager {
         if (!exists) {
           await this.client.indices.create({
             index,
-            body: {
-              settings,
-              mappings: mapping
-            }
+            settings,
+            mappings: mapping
           })
           console.log(`Created Elasticsearch index: ${index}`)
         } else {
           // Update mapping if index exists
           await this.client.indices.putMapping({
             index,
-            body: mapping
+            ...mapping
           })
           console.log(`Updated Elasticsearch mapping: ${index}`)
         }
@@ -430,7 +437,7 @@ export class ElasticsearchSchemaManager {
       try {
         await this.client.ilm.putLifecycle({
           name,
-          body: { policy }
+          policy
         })
         console.log(`Created ILM policy: ${name}`)
       } catch (error) {
@@ -510,7 +517,10 @@ export class ElasticsearchSchemaManager {
     
     for (const pipeline of pipelines) {
       try {
-        await this.client.ingest.putPipeline(pipeline)
+        await this.client.ingest.putPipeline({
+          id: pipeline.id,
+          ...pipeline.body
+        })
         console.log(`Created ingest pipeline: ${pipeline.id}`)
       } catch (error) {
         console.error(`Failed to create pipeline ${pipeline.id}:`, error)

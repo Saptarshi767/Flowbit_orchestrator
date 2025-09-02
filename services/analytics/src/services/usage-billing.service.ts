@@ -101,7 +101,7 @@ export class UsageBillingService {
       const aggs = result.aggregations;
 
       // Process top workflows
-      const topWorkflows: WorkflowUsage[] = aggs.top_workflows.buckets.map((bucket: any) => {
+      const topWorkflows: WorkflowUsage[] = aggs?.top_workflows?.buckets?.map((bucket: any) => {
         const workflowName = bucket.workflow_name.buckets[0]?.key || `Workflow ${bucket.key}`;
         const successRate = bucket.doc_count > 0 ? (bucket.success_count.doc_count / bucket.doc_count) * 100 : 0;
         
@@ -112,10 +112,10 @@ export class UsageBillingService {
           successRate,
           avgDuration: bucket.avg_duration.value || 0
         };
-      });
+      }) || [];
 
       // Process top users
-      const topUsers: UserUsage[] = aggs.top_users.buckets.map((bucket: any) => {
+      const topUsers: UserUsage[] = aggs?.top_users?.buckets?.map((bucket: any) => {
         const userName = bucket.user_name.buckets[0]?.key || `User ${bucket.key}`;
         
         return {
@@ -125,31 +125,31 @@ export class UsageBillingService {
           workflows: bucket.unique_workflows.value,
           lastActivity: new Date(bucket.last_activity.value)
         };
-      });
+      }) || [];
 
       // Process executions by engine
       const executionsByEngine: Record<string, number> = {};
-      aggs.executions_by_engine.buckets.forEach((bucket: any) => {
+      aggs?.executions_by_engine?.buckets?.forEach((bucket: any) => {
         executionsByEngine[bucket.key] = bucket.doc_count;
       });
 
       // Process executions by status
       const executionsByStatus: Record<string, number> = {};
-      aggs.executions_by_status.buckets.forEach((bucket: any) => {
+      aggs?.executions_by_status?.buckets?.forEach((bucket: any) => {
         executionsByStatus[bucket.key] = bucket.doc_count;
       });
 
       // Process time series
-      const timeSeries: TimeSeriesPoint[] = aggs.executions_over_time.buckets.map((bucket: any) => ({
+      const timeSeries: TimeSeriesPoint[] = aggs?.executions_over_time?.buckets?.map((bucket: any) => ({
         timestamp: new Date(bucket.key),
         value: bucket.doc_count
-      }));
+      })) || [];
 
       return {
         timeRange: query.timeRange,
-        totalExecutions: aggs.total_executions.value || 0,
-        uniqueUsers: aggs.unique_users.value || 0,
-        activeWorkflows: aggs.unique_workflows.value || 0,
+        totalExecutions: aggs?.total_executions?.value || 0,
+        uniqueUsers: aggs?.unique_users?.value || 0,
+        activeWorkflows: aggs?.unique_workflows?.value || 0,
         topWorkflows,
         topUsers,
         executionsByEngine,
@@ -285,9 +285,9 @@ export class UsageBillingService {
 
       const timeRangeHours = (timeRange.end.getTime() - timeRange.start.getTime()) / (1000 * 60 * 60);
       
-      const cpuHours = (aggs.cpu_hours.total_cpu_time.value || 0) / 100; // Convert percentage to hours
-      const storageMBHours = (aggs.storage_mb_hours.avg_storage.value || 0) * timeRangeHours;
-      const networkMB = aggs.network_mb.total_network.value || 0;
+      const cpuHours = (aggs?.cpu_hours?.total_cpu_time?.value || 0) / 100; // Convert percentage to hours
+      const storageMBHours = (aggs?.storage_mb_hours?.avg_storage?.value || 0) * timeRangeHours;
+      const networkMB = aggs?.network_mb?.total_network?.value || 0;
 
       return {
         compute: cpuHours * this.billingRates.compute,

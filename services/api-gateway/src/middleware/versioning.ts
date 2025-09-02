@@ -1,5 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from '@robust-ai-orchestrator/shared';
+
+// Local type definition
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
 
 export interface VersionedRequest extends Request {
   apiVersion: string;
@@ -78,20 +85,8 @@ export const versioningMiddleware = (req: Request, res: Response, next: NextFunc
   if (!isValidVersion(requestedVersion)) {
     const errorResponse: ApiResponse = {
       success: false,
-      error: {
-        code: 'UNSUPPORTED_API_VERSION',
-        message: `API version ${requestedVersion} is not supported. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`,
-        details: {
-          requestedVersion,
-          supportedVersions: SUPPORTED_VERSIONS,
-          currentVersion: CURRENT_VERSION
-        }
-      },
-      meta: {
-        correlationId: (versionedReq as any).correlationId || '',
-        timestamp: new Date().toISOString(),
-        version: CURRENT_VERSION
-      }
+      error: `UNSUPPORTED_API_VERSION: API version ${requestedVersion} is not supported. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`,
+      message: `API version ${requestedVersion} is not supported. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`
     };
 
     res.status(400).json(errorResponse);

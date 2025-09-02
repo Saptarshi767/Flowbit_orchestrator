@@ -3,10 +3,10 @@ import { beforeAll, afterAll } from 'vitest';
 // Global test setup
 beforeAll(async () => {
   // Set test environment variables
-  process.env.NODE_ENV = 'test';
-  process.env.LOG_LEVEL = 'error';
-  process.env.ELASTICSEARCH_URL = 'http://localhost:9200';
-  process.env.REDIS_URL = 'redis://localhost:6379';
+  (process.env as any).NODE_ENV = 'test';
+  (process.env as any).LOG_LEVEL = 'error';
+  (process.env as any).ELASTICSEARCH_URL = 'http://localhost:9200';
+  (process.env as any).REDIS_URL = 'redis://localhost:6379';
   process.env.CACHE_ENABLED = 'true';
   process.env.CACHE_TTL = '60';
   process.env.REPORTS_DIR = './test-reports';

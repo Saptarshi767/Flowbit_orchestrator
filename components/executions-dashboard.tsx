@@ -395,7 +395,7 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
                         {getStatusBadge(execution.status)}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{execution.workflowName || execution.flow || 'Unknown'}</TableCell>
+                    <TableCell className="font-medium">{execution.workflowName || 'Unknown'}</TableCell>
                     <TableCell>{getEngineBadge('langflow')}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -509,12 +509,14 @@ export function ExecutionsDashboard({ selectedFolder }: ExecutionsDashboardProps
         </CardContent>
       </Card>
 
-      <ExecutionDetailsModal
-        open={detailsModalOpen}
-        onOpenChange={setDetailsModalOpen}
-        executionId={selectedExecution?.id || null}
-        engine={selectedExecution?.engine || 'flowbit'}
-      />
+      {selectedExecution?.id && (
+        <ExecutionDetailsModal
+          open={detailsModalOpen}
+          onOpenChange={setDetailsModalOpen}
+          executionId={selectedExecution.id}
+          engine={(selectedExecution?.engine === 'langflow' ? 'langflow' : 'flowbit') as "flowbit" | "langflow"}
+        />
+      )}
     </div>
   )
 }

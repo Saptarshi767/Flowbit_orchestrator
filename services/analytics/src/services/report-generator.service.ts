@@ -8,12 +8,13 @@ import {
   Report, 
   ReportType, 
   ReportStatus,
+  ReportFormat,
   TimeRange,
   PerformanceMetrics,
   UsageAnalytics,
   BillingMetrics
 } from '../interfaces/analytics.interface';
-import { ReportFormat } from '@robust-ai-orchestrator/shared';
+// ReportFormat is already imported from analytics.interface
 import { ElasticsearchPipelineService } from './elasticsearch-pipeline.service';
 
 export class ReportGeneratorService {
@@ -139,6 +140,10 @@ export class ReportGeneratorService {
     const result = await this.elasticsearchService.queryData(executionQuery);
     const aggs = result.aggregations;
 
+    if (!aggs) {
+      throw new Error('No aggregations returned from performance metrics query');
+    }
+
     return {
       timeRange,
       metrics: {
@@ -238,6 +243,10 @@ export class ReportGeneratorService {
 
     const result = await this.elasticsearchService.queryData(usageQuery);
     const aggs = result.aggregations;
+
+    if (!aggs) {
+      throw new Error('No aggregations returned from usage analytics query');
+    }
 
     return {
       timeRange,
@@ -411,7 +420,7 @@ export class ReportGeneratorService {
     });
   }
 
-  private addPerformanceContentToPDF(doc: PDFDocument, data: PerformanceMetrics, yPosition: number): number {
+  private addPerformanceContentToPDF(doc: any, data: PerformanceMetrics, yPosition: number): number {
     doc.fontSize(16).text('Performance Metrics', 50, yPosition);
     yPosition += 30;
 
@@ -427,7 +436,7 @@ export class ReportGeneratorService {
     return yPosition;
   }
 
-  private addUsageContentToPDF(doc: PDFDocument, data: UsageAnalytics, yPosition: number): number {
+  private addUsageContentToPDF(doc: any, data: UsageAnalytics, yPosition: number): number {
     doc.fontSize(16).text('Usage Analytics', 50, yPosition);
     yPosition += 30;
 
@@ -451,7 +460,7 @@ export class ReportGeneratorService {
     return yPosition;
   }
 
-  private addBillingContentToPDF(doc: PDFDocument, data: BillingMetrics, yPosition: number): number {
+  private addBillingContentToPDF(doc: any, data: BillingMetrics, yPosition: number): number {
     doc.fontSize(16).text('Billing Metrics', 50, yPosition);
     yPosition += 30;
 
@@ -606,7 +615,6 @@ export class ReportGeneratorService {
         id: 'performance',
         name: 'Performance Report',
         description: 'Detailed performance metrics and trends',
-        template: 'performance-template',
         parameters: [
           { name: 'timeRange', type: 'date', required: true },
           { name: 'includeDetails', type: 'boolean', required: false, defaultValue: true }
@@ -617,7 +625,7 @@ export class ReportGeneratorService {
         id: 'usage',
         name: 'Usage Analytics Report',
         description: 'User and workflow usage statistics',
-        template: 'usage-template',
+
         parameters: [
           { name: 'timeRange', type: 'date', required: true },
           { name: 'includeUsers', type: 'boolean', required: false, defaultValue: true },
@@ -629,7 +637,7 @@ export class ReportGeneratorService {
         id: 'billing',
         name: 'Billing Report',
         description: 'Cost analysis and billing metrics',
-        template: 'billing-template',
+
         parameters: [
           { name: 'timeRange', type: 'date', required: true },
           { name: 'currency', type: 'string', required: false, defaultValue: 'USD' }
@@ -640,7 +648,7 @@ export class ReportGeneratorService {
         id: 'execution-summary',
         name: 'Execution Summary Report',
         description: 'Detailed execution logs and summaries',
-        template: 'execution-template',
+
         parameters: [
           { name: 'timeRange', type: 'date', required: true },
           { name: 'status', type: 'string', required: false }
