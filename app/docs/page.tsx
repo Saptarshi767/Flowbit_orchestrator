@@ -4,12 +4,12 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Search, 
-  BookOpen, 
-  Code, 
-  Zap, 
-  Settings, 
+import {
+  Search,
+  BookOpen,
+  Code,
+  Zap,
+  Settings,
   HelpCircle,
   ExternalLink,
   FileText,
@@ -168,7 +168,7 @@ export default function DocsPage() {
                             {item.title}
                           </h4>
                           <div className="flex items-center space-x-2 mt-1">
-                            <Badge className={`text-xs ${typeColors[item.type]}`}>
+                            <Badge className={`text-xs ${typeColors[item.type as keyof typeof typeColors]}`}>
                               {item.type}
                             </Badge>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -210,7 +210,7 @@ export default function DocsPage() {
                         {article.title}
                       </h3>
                       <div className="flex items-center space-x-3 mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        <Badge className={`text-xs ${typeColors[article.type]}`}>
+                        <Badge className={`text-xs ${typeColors[article.type as keyof typeof typeColors]}`}>
                           {article.type}
                         </Badge>
                         <span>{article.readTime}</span>
