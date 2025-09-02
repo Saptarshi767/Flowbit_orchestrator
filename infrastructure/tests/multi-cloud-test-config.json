@@ -1,0 +1,94 @@
+{
+  "cloud_config": {
+    "aws_region": "us-west-2",
+    "azure_location": "East US",
+    "gcp_region": "us-central1",
+    "gcp_project_id": "${GCP_PROJECT_ID}",
+    "environment": "prod"
+  },
+  "aws": {
+    "region": "us-west-2",
+    "vpc_id": "${AWS_VPC_ID}",
+    "eks_cluster_name": "${ENVIRONMENT}-eks-cluster",
+    "rds_instance_id": "${ENVIRONMENT}-postgresql"
+  },
+  "azure": {
+    "subscription_id": "${AZURE_SUBSCRIPTION_ID}",
+    "resource_group_name": "${ENVIRONMENT}-orchestrator-rg",
+    "aks_cluster_name": "${ENVIRONMENT}-aks"
+  },
+  "gcp": {
+    "project_id": "${GCP_PROJECT_ID}",
+    "location": "us-central1",
+    "cluster_name": "${ENVIRONMENT}-gke",
+    "credentials_path": "${GOOGLE_APPLICATION_CREDENTIALS}"
+  },
+  "cross_cloud": {
+    "aws_to_azure_enabled": true,
+    "aws_to_gcp_enabled": true,
+    "azure_to_gcp_enabled": false
+  },
+  "validation_config": {
+    "timeout_seconds": 300,
+    "parallel_execution": true,
+    "detailed_reporting": true,
+    "skip_expensive_tests": false,
+    "include_performance_tests": true
+  },
+  "thresholds": {
+    "minimum_overall_score": 70,
+    "minimum_infrastructure_score": 80,
+    "minimum_security_score": 85,
+    "minimum_dr_score": 75,
+    "minimum_cost_optimization_score": 60
+  },
+  "notification": {
+    "slack_webhook_url": "${SLACK_WEBHOOK_URL}",
+    "email_recipients": [
+      "platform-team@company.com",
+      "devops@company.com"
+    ]
+  },
+  "expected_resources": {
+    "aws": {
+      "min_vpc_count": 1,
+      "min_eks_clusters": 1,
+      "min_rds_instances": 1,
+      "min_s3_buckets": 1,
+      "min_backup_plans": 1,
+      "min_budgets": 1
+    },
+    "azure": {
+      "min_resource_groups": 1,
+      "min_virtual_networks": 1,
+      "min_aks_clusters": 1,
+      "min_sql_servers": 1,
+      "min_storage_accounts": 1
+    },
+    "gcp": {
+      "min_gke_clusters": 1,
+      "min_sql_instances": 1,
+      "min_storage_buckets": 1,
+      "min_networks": 1
+    }
+  },
+  "cost_optimization": {
+    "expected_monthly_savings": 500,
+    "spot_instance_percentage": 30,
+    "auto_scaling_enabled": true,
+    "budget_alerts_configured": true
+  },
+  "disaster_recovery": {
+    "max_rto_minutes": 120,
+    "max_rpo_minutes": 60,
+    "cross_region_replication_required": true,
+    "backup_frequency_hours": 24
+  },
+  "security": {
+    "encryption_at_rest_required": true,
+    "encryption_in_transit_required": true,
+    "kms_keys_required": true,
+    "network_security_groups_required": true,
+    "audit_logging_required": true
+  }
+}

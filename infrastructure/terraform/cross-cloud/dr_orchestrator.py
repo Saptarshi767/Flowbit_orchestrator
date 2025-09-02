@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Disaster Recovery Orchestrator Lambda Function
-Automates disaster recovery procedures and testing
+Disaster Recovery Orchestrator
+Automates disaster recovery procedures across AWS, Azu
 """
 
 import os

@@ -1,0 +1,88 @@
+# Multi-Cloud Production Environment Configuration Example
+# Copy this file to terraform.tfvars and update the values
+
+# Environment Configuration
+environment = "prod"
+owner = "platform-team"
+cost_center = "engineering"
+
+# GCP Configuration (Required)
+gcp_project_id = "your-production-gcp-project-id"
+gcp_billing_account_id = "your-billing-account-id"
+gcp_region = "us-central1"
+
+# AWS Configuration
+aws_region = "us-west-2"
+
+# Azure Configuration
+azure_location = "East US"
+
+# Database Configuration (Required - Use strong passwords)
+database_password = "your-very-secure-database-password-here"
+redis_auth_token = "your-very-secure-redis-auth-token-here"
+
+# Multi-Cloud Feature Flags (Production Settings)
+enable_cross_cloud_networking = true
+enable_data_replication = true
+enable_disaster_recovery = true
+enable_cost_optimization = true
+enable_cross_cloud_monitoring = true
+enable_s3_cross_region_replication = true
+
+# Budget Configuration (Production Budgets)
+aws_monthly_budget_limit = 10000
+azure_monthly_budget_limit = 8000
+gcp_monthly_budget_limit = 7000
+
+# Notification Configuration
+budget_notification_emails = [
+  "finance@yourcompany.com",
+  "platform-team@yourcompany.com",
+  "cto@yourcompany.com"
+]
+cost_anomaly_notification_email = "platform-team@yourcompany.com"
+cost_anomaly_threshold = 500
+
+# GCP Notification Channels (Create these in GCP Console first)
+gcp_notification_channels = [
+  "projects/your-project/notificationChannels/your-channel-id"
+]
+
+# Resource Optimization (Production Settings)
+enable_resource_optimization = true
+enable_spot_instances = true  # Use spot instances for non-critical workloads
+enable_trusted_advisor_notifications = true
+enable_azure_advisor = true
+enable_cost_allocation_tags = true
+
+# Auto-scaling Configuration (Production Thresholds)
+cpu_scale_up_threshold = 75
+cpu_scale_down_threshold = 25
+
+# Resource Optimization Settings
+idle_resource_threshold_days = 3  # More aggressive in production
+optimization_schedule = "0 3 * * *"  # Daily at 3 AM
+
+# Spot Instance Configuration (Production)
+spot_fleet_target_capacity = 5
+spot_instance_ami_id = "ami-0c02fb55956c7d316"  # Update with your AMI
+spot_instance_types = ["m5.large", "m5.xlarge", "c5.large", "c5.xlarge"]
+key_pair_name = "your-production-key-pair"
+
+# Slack Integration (Optional but recommended for production)
+slack_webhook_url = "https://hooks.slack.com/services/YOUR/PRODUCTION/WEBHOOK"
+slack_channel_name = "production-infrastructure-alerts"
+slack_channel_id = "C1234567890"
+slack_team_id = "T1234567890"
+
+# Cost Allocation (Production Cost Centers)
+cost_centers = [
+  "engineering",
+  "operations", 
+  "platform",
+  "security",
+  "data-science"
+]
+
+# Backup and Retention (Production Settings)
+backup_retention_days = 90  # Longer retention for production
