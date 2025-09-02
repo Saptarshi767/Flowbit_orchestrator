@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const readableStream = new ReadableStream({
     start(controller) {
       const stream = fs.createReadStream(logPath, { encoding: "utf-8" });
-      stream.on("data", chunk => controller.enqueue(encoder.encode(chunk)));
+      stream.on("data", chunk => controller.enqueue(encoder.encode(chunk.toString())));
       stream.on("end", () => controller.close());
     }
   });
