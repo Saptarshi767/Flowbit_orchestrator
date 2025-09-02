@@ -39,7 +39,7 @@ const InteractiveCard = ({ children, className }: { children: React.ReactNode; c
   const rotateX = useTransform(mouseY, [-0.5, 0.5], ["10deg", "-10deg"]);
   const rotateY = useTransform(mouseX, [-0.5, 0.5], ["-10deg", "10deg"]);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent) => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const width = rect.width;
