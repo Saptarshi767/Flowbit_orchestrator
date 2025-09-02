@@ -28,7 +28,7 @@ const iconHover = {
 };
 
 // 3D Interactive Card Component
-const InteractiveCard = ({ children, className }) => {
+const InteractiveCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   const ref = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -108,8 +108,8 @@ export default function LandingPage() {
 
       {/* Hero Section with Lottie Animation */}
       <section className="w-full flex flex-col items-center justify-center py-24 px-4 text-center relative overflow-hidden">
-        <motion.div 
-          style={{ y: y1 }} 
+        <motion.div
+          style={{ y: y1 }}
           className="w-full flex flex-col items-center"
           initial="initial"
           animate="animate"
@@ -133,7 +133,7 @@ export default function LandingPage() {
       </section>
 
       {/* Parallax/Scroll Animation Section */}
-      <motion.section 
+      <motion.section
         className="w-full flex flex-col items-center py-24 px-4"
         initial="initial"
         whileInView="animate"
@@ -166,7 +166,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* How it Works Section */}
-      <motion.section 
+      <motion.section
         className="w-full flex flex-col items-center py-24 px-4 bg-flowbit-blue/5 dark:bg-flowbit-deep/10"
         initial="initial"
         whileInView="animate"
@@ -196,7 +196,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* How to Use Section */}
-      <motion.section 
+      <motion.section
         className="w-full flex flex-col items-center py-24 px-4"
         initial="initial"
         whileInView="animate"
@@ -209,7 +209,7 @@ export default function LandingPage() {
             {/* Getting Started */}
             <motion.div variants={fadeInUp} className="space-y-6">
               <h3 className="text-2xl font-bold text-flowbit-blue mb-6">Getting Started</h3>
-              
+
               <InteractiveCard className="glass dark:glass-dark p-6 rounded-xl shadow-lg">
                 <div className="flex items-center mb-3">
                   <div className="w-8 h-8 bg-flowbit-teal text-white rounded-full flex items-center justify-center font-bold mr-3">1</div>
@@ -250,7 +250,7 @@ export default function LandingPage() {
             {/* Building Workflows */}
             <motion.div variants={fadeInUp} className="space-y-6">
               <h3 className="text-2xl font-bold text-flowbit-deep mb-6">Building Workflows</h3>
-              
+
               <InteractiveCard className="glass dark:glass-dark p-6 rounded-xl shadow-lg">
                 <div className="flex items-center mb-3">
                   <div className="w-8 h-8 bg-flowbit-deep text-white rounded-full flex items-center justify-center font-bold mr-3">4</div>
@@ -291,7 +291,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Advanced Features */}
-          <motion.div 
+          <motion.div
             className="mt-16"
             initial="initial"
             whileInView="animate"
@@ -305,13 +305,13 @@ export default function LandingPage() {
                 <h4 className="font-semibold mb-2">Import/Export</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Share workflows with your team or import existing ones</p>
               </InteractiveCard>
-              
+
               <InteractiveCard className="glass dark:glass-dark p-6 rounded-xl shadow-lg text-center">
                 <FaUpload className="text-3xl text-flowbit-blue mx-auto mb-3" />
                 <h4 className="font-semibold mb-2">API Integration</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Connect with external services and APIs seamlessly</p>
               </InteractiveCard>
-              
+
               <InteractiveCard className="glass dark:glass-dark p-6 rounded-xl shadow-lg text-center">
                 <FaChartLine className="text-3xl text-flowbit-deep mx-auto mb-3" />
                 <h4 className="font-semibold mb-2">Scheduling</h4>
@@ -321,7 +321,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Quick Start CTA */}
-          <motion.div 
+          <motion.div
             className="mt-12 text-center"
             initial="initial"
             whileInView="animate"
@@ -345,7 +345,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* Features Section */}
-      <motion.section 
+      <motion.section
         className="w-full flex flex-col items-center py-24 px-4"
         initial="initial"
         whileInView="animate"
@@ -376,7 +376,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* Get Started CTA */}
-      <motion.section 
+      <motion.section
         className="w-full flex flex-col items-center py-16 px-4 bg-gradient-to-r from-flowbit-teal via-flowbit-blue to-flowbit-deep"
         initial="initial"
         whileInView="animate"
