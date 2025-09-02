@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   Info,
   Trash2,
-  MarkAsRead,
+  Check,
   Settings
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
@@ -139,7 +139,7 @@ export default function NotificationsPage() {
               Settings
             </Button>
             <Button variant="outline">
-              <MarkAsRead className="w-4 h-4 mr-2" />
+              <Check className="w-4 h-4 mr-2" />
               Mark All Read
             </Button>
           </div>
