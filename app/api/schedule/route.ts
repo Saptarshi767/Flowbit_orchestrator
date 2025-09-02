@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       { status: 401 }
     );
   }
-  const userId = session.user.id;
+  const userId = session.user.id as string;
   try {
     const body = await req.json();
     const workflow = body.workflow;
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const jobId = addCronJob(workflow, cronExpr, input, userId);
+    const jobId = addCronJob(workflow, cronExpr, input, userId as string);
 
     return new Response(
       JSON.stringify({ 
