@@ -1,0 +1,180 @@
+version: '3.8'
+
+services:
+  # Test Database
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: orchestrator_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d orchestrator_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Elasticsearch
+  elasticsearch-test:
+    image: elasticsearch:8.8.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch_test_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # API Gateway Service
+  api-gateway-test:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/orchestrator_test
+      - REDIS_URL=redis://redis-test:6379
+      - ELASTICSEARCH_URL=http://elasticsearch-test:9200
+      - JWT_SECRET=test-jwt-secret-key
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      elasticsearch-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Orchestration Service
+  orchestration-test:
+    build:
+      context: .
+      dockerfile: services/orchestration/Dockerfile
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/orchestrator_test
+      - REDIS_URL=redis://redis-test:6379
+      - API_GATEWAY_URL=http://api-gateway-test:3000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      api-gateway-test:
+        condition: service_healthy
+
+  # Workflow Management Service
+  workflow-management-test:
+    build:
+      context: .
+      dockerfile: services/workflow-management/Dockerfile
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/orchestrator_test
+      - REDIS_URL=redis://redis-test:6379
+      - ELASTICSEARCH_URL=http://elasticsearch-test:9200
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      elasticsearch-test:
+        condition: service_healthy
+
+  # Execution Service
+  execution-test:
+    build:
+      context: .
+      dockerfile: services/execution/Dockerfile
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/orchestrator_test
+      - REDIS_URL=redis://redis-test:6379
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+
+  # Monitoring Service
+  monitoring-test:
+    build:
+      context: .
+      dockerfile: services/monitoring/Dockerfile
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/orchestrator_test
+      - REDIS_URL=redis://redis-test:6379
+      - ELASTICSEARCH_URL=http://elasticsearch-test:9200
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      elasticsearch-test:
+        condition: service_healthy
+
+  # Mock External Services for Testing
+  mock-langflow:
+    image: wiremock/wiremock:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./tests/mocks/langflow:/home/wiremock
+    command: ["--global-response-templating", "--verbose"]
+
+  mock-n8n:
+    image: wiremock/wiremock:latest
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./tests/mocks/n8n:/home/wiremock
+    command: ["--global-response-templating", "--verbose"]
+
+  mock-langsmith:
+    image: wiremock/wiremock:latest
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./tests/mocks/langsmith:/home/wiremock
+    command: ["--global-response-templating", "--verbose"]
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+  elasticsearch_test_data:
+
+networks:
+  default:
+    name: ai-orchestrator-test

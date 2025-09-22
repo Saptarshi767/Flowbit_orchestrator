@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-configuration
+  labels:
+    app: jaeger
+data:
+  span-storage-type: elasticsearch
+  collector.yaml: |
+    receivers:
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      memory_limiter:
+        limit_mib: 512
+    
+    exporters:
+      elasticsearch:
+        endpoints: [http://elasticsearch:9200]
+        index: jaeger-span
+        mapping:
+          enabled: true
+    
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      pprof:
+        endpoint: 0.0.0.0:1777
+      zpages:
+        endpoint: 0.0.0.0:55679
+    
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [jaeger, otlp]
+          processors: [memory_limiter, batch]
+          exporters: [elasticsearch]
+  
+  query.yaml: |
+    es:
+      server-urls: http://elasticsearch:9200
+      index-prefix: jaeger
+    query:
+      base-path: /
+      static-files: /go/jaeger-ui/
+    log-level: info

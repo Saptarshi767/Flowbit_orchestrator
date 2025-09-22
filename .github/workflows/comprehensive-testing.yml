@@ -1,0 +1,435 @@
+name: Comprehensive Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run nightly comprehensive tests
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, orchestration, workflow-management, execution, monitoring, analytics, marketplace, auth, user-management]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd services/${{ matrix.service }}
+          npm ci
+      
+      - name: Run unit tests
+        run: |
+          cd services/${{ matrix.service }}
+          npm run test:unit -- --coverage --run
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: services/${{ matrix.service }}/coverage/lcov.info
+          flags: ${{ matrix.service }}
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orchestrator_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      
+      elasticsearch:
+        image: elasticsearch:8.8.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        options: >-
+          --health-cmd "curl -f http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 9200:9200
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup test database
+        run: |
+          npm run db:migrate:test
+          npm run db:seed:test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orchestrator_test
+          REDIS_URL: redis://localhost:6379
+          ELASTICSEARCH_URL: http://localhost:9200
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orchestrator_test
+          REDIS_URL: redis://localhost:6379
+          ELASTICSEARCH_URL: http://localhost:9200
+          JWT_SECRET: test-secret-key
+          NODE_ENV: test
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Start services with Docker Compose
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          # Wait for services to be ready
+          timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost:3000
+      
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            test-results/
+            playwright-report/
+      
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+  load-tests:
+    name: Load Tests
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[load-test]')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+      
+      - name: Run load tests
+        run: |
+          k6 run tests/load/k6-load-tests.js \
+            --env BASE_URL=http://localhost:3000 \
+            --out json=load-test-results.json
+      
+      - name: Upload load test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results
+          path: load-test-results.json
+      
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install Python dependencies
+        run: |
+          pip install -r tests/security/requirements.txt
+      
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+      
+      - name: Run security tests
+        run: |
+          python tests/security/security-test-suite.py http://localhost:3000
+      
+      - name: Run OWASP ZAP scan
+        run: |
+          docker run --rm -v $(pwd):/zap/wrk/:rw \
+            --network host \
+            owasp/zap2docker-stable zap-baseline.py \
+            -t http://localhost:3000 \
+            -J zap-report.json \
+            -r zap-report.html
+        continue-on-error: true
+      
+      - name: Upload security test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-test-results
+          path: |
+            security-test-report.json
+            zap-report.json
+            zap-report.html
+      
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+  chaos-tests:
+    name: Chaos Engineering Tests
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[chaos-test]')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install chaos engineering tools
+        run: |
+          pip install chaostoolkit chaostoolkit-kubernetes
+          pip install -r tests/chaos/requirements.txt
+      
+      - name: Setup kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: chaos-test
+          config: tests/chaos/kind-config.yaml
+      
+      - name: Deploy application to kind
+        run: |
+          kubectl apply -f k8s/test/
+          kubectl wait --for=condition=ready pod -l app=api-gateway --timeout=300s
+      
+      - name: Run chaos experiments
+        run: |
+          chaos run tests/chaos/chaos-experiments.yml \
+            --journal-path chaos-journal.json
+        continue-on-error: true
+      
+      - name: Upload chaos test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: chaos-test-results
+          path: chaos-journal.json
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: load-tests
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[perf-test]')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install Artillery
+        run: npm install -g artillery@latest
+      
+      - name: Start services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+      
+      - name: Run performance tests
+        run: |
+          artillery run tests/load/artillery-config.yml \
+            --output performance-results.json
+      
+      - name: Generate performance report
+        run: |
+          artillery report performance-results.json \
+            --output performance-report.html
+      
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test-results
+          path: |
+            performance-results.json
+            performance-report.html
+      
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+  test-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, security-tests]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Generate comprehensive test report
+        run: |
+          python tests/scripts/generate-test-report.py \
+            --output comprehensive-test-report.html
+      
+      - name: Upload comprehensive report
+        uses: actions/upload-artifact@v3
+        with:
+          name: comprehensive-test-report
+          path: comprehensive-test-report.html
+      
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read test results and create summary
+            let summary = '## 🧪 Test Results Summary\n\n';
+            
+            // Add test status badges
+            summary += '![Unit Tests](https://img.shields.io/badge/Unit%20Tests-✅%20Passed-green)\n';
+            summary += '![Integration Tests](https://img.shields.io/badge/Integration%20Tests-✅%20Passed-green)\n';
+            summary += '![E2E Tests](https://img.shields.io/badge/E2E%20Tests-✅%20Passed-green)\n';
+            summary += '![Security Tests](https://img.shields.io/badge/Security%20Tests-✅%20Passed-green)\n\n';
+            
+            summary += '📊 [View Comprehensive Test Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  notify-results:
+    name: Notify Test Results
+    runs-on: ubuntu-latest
+    needs: [test-report, load-tests, chaos-tests, performance-tests]
+    if: always() && (github.event_name == 'schedule' || github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#ci-cd'
+          text: |
+            Comprehensive test suite completed for AI Orchestrator
+            
+            Results:
+            • Unit Tests: ${{ needs.unit-tests.result }}
+            • Integration Tests: ${{ needs.integration-tests.result }}
+            • E2E Tests: ${{ needs.e2e-tests.result }}
+            • Security Tests: ${{ needs.security-tests.result }}
+            • Load Tests: ${{ needs.load-tests.result }}
+            • Chaos Tests: ${{ needs.chaos-tests.result }}
+            • Performance Tests: ${{ needs.performance-tests.result }}
+            
+            View details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

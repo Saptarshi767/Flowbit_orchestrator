@@ -1,0 +1,211 @@
+version: 1.0.0
+title: "AI Orchestrator Chaos Engineering Experiments"
+description: "Fault tolerance validation for the AI orchestration platform"
+
+configuration:
+  kubernetes:
+    namespace: "ai-orchestrator"
+  
+steady-state-hypothesis:
+  title: "System remains responsive under normal conditions"
+  probes:
+    - name: "api-gateway-health"
+      type: "probe"
+      provider:
+        type: "http"
+        url: "http://api-gateway:3000/health"
+        timeout: 5
+      tolerance:
+        type: "status"
+        status: 200
+    
+    - name: "workflow-execution-success-rate"
+      type: "probe"
+      provider:
+        type: "http"
+        url: "http://monitoring:3000/metrics/execution-success-rate"
+        timeout: 10
+      tolerance:
+        type: "range"
+        range: [0.95, 1.0]  # 95% success rate minimum
+    
+    - name: "response-time-acceptable"
+      type: "probe"
+      provider:
+        type: "http"
+        url: "http://api-gateway:3000/api/workflows"
+        timeout: 3
+      tolerance:
+        type: "latency"
+        target: "p95"
+        under: 2000  # 95th percentile under 2 seconds
+
+experiments:
+  - title: "Database Connection Pool Exhaustion"
+    description: "Test system behavior when database connections are exhausted"
+    method:
+      - type: "action"
+        name: "exhaust-db-connections"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/exhaust-db-connections.py"]
+        pauses:
+          after: 30
+      
+      - type: "probe"
+        name: "verify-graceful-degradation"
+        provider:
+          type: "http"
+          url: "http://api-gateway:3000/api/workflows"
+        tolerance:
+          type: "status"
+          status: [200, 503]  # Accept either success or service unavailable
+    
+    rollbacks:
+      - type: "action"
+        name: "restore-db-connections"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/restore-db-connections.py"]
+
+  - title: "Orchestration Service Pod Failure"
+    description: "Test system resilience when orchestration service pods fail"
+    method:
+      - type: "action"
+        name: "kill-orchestration-pods"
+        provider:
+          type: "python"
+          module: "chaosk8s.pod.actions"
+          func: "terminate_pods"
+          arguments:
+            label_selector: "app=orchestration-service"
+            qty: 2
+            rand: true
+        pauses:
+          after: 15
+      
+      - type: "probe"
+        name: "verify-auto-recovery"
+        provider:
+          type: "python"
+          module: "chaosk8s.pod.probes"
+          func: "count_pods"
+          arguments:
+            label_selector: "app=orchestration-service"
+        tolerance:
+          type: "range"
+          range: [2, 5]  # Should have 2-5 healthy pods
+
+  - title: "Redis Cache Failure"
+    description: "Test system behavior when Redis cache becomes unavailable"
+    method:
+      - type: "action"
+        name: "stop-redis-service"
+        provider:
+          type: "python"
+          module: "chaosk8s.service.actions"
+          func: "remove_service"
+          arguments:
+            name: "redis-service"
+        pauses:
+          after: 60
+      
+      - type: "probe"
+        name: "verify-fallback-behavior"
+        provider:
+          type: "http"
+          url: "http://api-gateway:3000/api/workflows"
+        tolerance:
+          type: "status"
+          status: 200  # Should still work without cache
+    
+    rollbacks:
+      - type: "action"
+        name: "restore-redis-service"
+        provider:
+          type: "process"
+          path: "kubectl"
+          arguments: ["apply", "-f", "./k8s/redis-service.yaml"]
+
+  - title: "Network Partition Between Services"
+    description: "Test system behavior during network partitions"
+    method:
+      - type: "action"
+        name: "create-network-partition"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/network-partition.py", "--isolate", "workflow-service"]
+        pauses:
+          after: 45
+      
+      - type: "probe"
+        name: "verify-circuit-breaker"
+        provider:
+          type: "http"
+          url: "http://api-gateway:3000/api/workflows/health"
+        tolerance:
+          type: "status"
+          status: [200, 503]
+    
+    rollbacks:
+      - type: "action"
+        name: "restore-network"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/network-partition.py", "--restore"]
+
+  - title: "High CPU Load on Execution Nodes"
+    description: "Test auto-scaling behavior under high CPU load"
+    method:
+      - type: "action"
+        name: "generate-cpu-load"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/cpu-stress.py", "--duration", "300"]
+        background: true
+      
+      - type: "probe"
+        name: "verify-auto-scaling"
+        provider:
+          type: "python"
+          module: "chaosk8s.pod.probes"
+          func: "count_pods"
+          arguments:
+            label_selector: "app=execution-service"
+        tolerance:
+          type: "range"
+          range: [3, 10]  # Should scale up under load
+
+  - title: "Elasticsearch Index Corruption"
+    description: "Test system behavior when search index is corrupted"
+    method:
+      - type: "action"
+        name: "corrupt-elasticsearch-index"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/corrupt-es-index.py"]
+        pauses:
+          after: 30
+      
+      - type: "probe"
+        name: "verify-search-fallback"
+        provider:
+          type: "http"
+          url: "http://api-gateway:3000/api/workflows/search?q=test"
+        tolerance:
+          type: "status"
+          status: [200, 503]  # Should gracefully handle search failures
+    
+    rollbacks:
+      - type: "action"
+        name: "restore-elasticsearch-index"
+        provider:
+          type: "process"
+          path: "python"
+          arguments: ["./chaos-scripts/restore-es-index.py"]

@@ -1,0 +1,66 @@
+groups:
+  - name: performance_metrics
+    interval: 30s
+    rules:
+      - record: instance:cpu_usage:rate5m
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: instance:memory_usage:percentage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100
+
+      - record: instance:disk_usage:percentage
+        expr: (node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes * 100
+
+  - name: application_metrics
+    interval: 30s
+    rules:
+      - record: service:request_rate:rate5m
+        expr: rate(http_requests_total[5m])
+
+      - record: service:error_rate:rate5m
+        expr: rate(http_requests_total{status=~"5.."}[5m])
+
+      - record: service:success_rate:percentage
+        expr: (rate(http_requests_total{status=~"2.."}[5m]) / rate(http_requests_total[5m])) * 100
+
+      - record: service:response_time:p95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+      - record: service:response_time:p99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+
+  - name: workflow_metrics
+    interval: 30s
+    rules:
+      - record: workflow:execution_rate:rate5m
+        expr: rate(workflow_executions_total[5m])
+
+      - record: workflow:success_rate:percentage
+        expr: (rate(workflow_executions_total{status="completed"}[5m]) / rate(workflow_executions_total[5m])) * 100
+
+      - record: workflow:failure_rate:percentage
+        expr: (rate(workflow_executions_total{status="failed"}[5m]) / rate(workflow_executions_total[5m])) * 100
+
+      - record: workflow:avg_duration:rate5m
+        expr: rate(workflow_execution_duration_seconds_sum[5m]) / rate(workflow_execution_duration_seconds_count[5m])
+
+      - record: workflow:queue_size:current
+        expr: execution_queue_size
+
+  - name: business_metrics
+    interval: 60s
+    rules:
+      - record: business:active_users:1h
+        expr: count(increase(user_activity_total[1h]) > 0)
+
+      - record: business:workflows_created:1h
+        expr: increase(workflows_created_total[1h])
+
+      - record: business:executions_total:1h
+        expr: increase(workflow_executions_total[1h])
+
+      - record: business:revenue:1h
+        expr: increase(billing_revenue_total[1h])
+
+      - record: business:api_calls:1h
+        expr: increase(api_requests_total[1h])

@@ -1,0 +1,111 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 300
+      arrivalRate: 10
+      name: "Ramp up load"
+    - duration: 600
+      arrivalRate: 20
+      name: "Sustained load"
+    - duration: 300
+      arrivalRate: 50
+      name: "Peak load"
+    - duration: 120
+      arrivalRate: 5
+      name: "Cool down"
+  
+  processor: "./load-test-functions.js"
+  
+  variables:
+    testUser:
+      - "user1@example.com"
+      - "user2@example.com"
+      - "user3@example.com"
+    
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "User Authentication Flow"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ testUser }}"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - get:
+          url: "/api/user/profile"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  - name: "Workflow Management"
+    weight: 40
+    flow:
+      - function: "authenticate"
+      - get:
+          url: "/api/workflows"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/api/workflows"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Artillery Test Workflow {{ $randomString() }}"
+            engine: "{{ $randomPick('langflow', 'n8n', 'langsmith') }}"
+            definition: {}
+          capture:
+            - json: "$.id"
+              as: "workflowId"
+      - get:
+          url: "/api/workflows/{{ workflowId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  - name: "Workflow Execution"
+    weight: 30
+    flow:
+      - function: "authenticate"
+      - function: "createTestWorkflow"
+      - post:
+          url: "/api/workflows/{{ workflowId }}/execute"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            parameters:
+              input: "Test execution {{ $timestamp() }}"
+          capture:
+            - json: "$.executionId"
+              as: "executionId"
+      - loop:
+          - get:
+              url: "/api/executions/{{ executionId }}"
+              headers:
+                Authorization: "Bearer {{ authToken }}"
+          count: 10
+          whileTrue: "status !== 'completed' && status !== 'failed'"
+
+  - name: "Monitoring and Analytics"
+    weight: 10
+    flow:
+      - function: "authenticate"
+      - get:
+          url: "/api/monitoring/metrics"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: "/api/analytics/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: "/api/executions?limit=50"
+          headers:
+            Authorization: "Bearer {{ authToken }}"

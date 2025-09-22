@@ -1,0 +1,165 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Workflow Metrics",
+    "tags": ["workflow", "business"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Workflow Execution Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(workflow:execution_rate:rate5m)",
+            "legendFormat": "Executions/sec"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "red", "value": 100}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(workflow:success_rate:percentage)",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 90},
+                {"color": "green", "value": 95}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Queue Size",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "workflow:queue_size:current",
+            "legendFormat": "Pending Executions"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "red", "value": 100}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Average Duration",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(workflow:avg_duration:rate5m)",
+            "legendFormat": "Avg Duration"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 30},
+                {"color": "red", "value": 60}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Execution Status Over Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (status) (rate(workflow_executions_total[5m]))",
+            "legendFormat": "{{status}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Executions/sec", "min": 0}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Execution Duration Distribution",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "rate(workflow_execution_duration_seconds_bucket[5m])",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "Top Workflows by Execution Count",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum by (workflow_name) (increase(workflow_executions_total[1h])))",
+            "legendFormat": "{{workflow_name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Engine Performance Comparison",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "avg by (engine_type) (workflow:avg_duration:rate5m)",
+            "legendFormat": "{{engine_type}}"
+          }
+        ],
+        "yAxes": [
+          {"label": "Average Duration (s)", "min": 0}
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}
